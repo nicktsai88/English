@@ -3,285 +3,640 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文學習 App - 總部大廳</title>
-    <!-- 引入 Noto Serif TC (明體) 用於標題，Noto Sans TC (黑體) 用於內文 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <title>L3 Our Food Smells Good - Interactive English Learning</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            /* 國文主題配色：水墨與硃砂 */
-            --bg: #f9f7f2;            /* 背景：米白宣紙色 */
-            --text-main: #2c2c2c;     /* 主字色：墨黑 */
-            --card-bg: #ffffff;
-            
-            /* 冊別顏色區分 */
-            --vol3-color: #00897b;    /* 第3冊：青瓷綠 */
-            --vol3-light: #e0f2f1;    /* 第3冊淡色背景 */
-            
-            --vol4-color: #c62828;    /* 第4冊：朱砂紅 */
-            --vol4-light: #ffebee;    /* 第4冊淡色背景 */
-        }
-
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--bg);
-            /* 加入淡淡的紙張紋理感 */
-            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
-            background-size: 20px 20px;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            color: var(--text-main);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
-            max-width: 800px;
-        }
-
-        .header h1 {
-            font-family: 'Noto Serif TC', serif; /* 標題使用明體 */
-            color: var(--text-main);
-            font-size: 3em;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
-        }
-
-        .header p {
-            color: #5d4037; /* 深褐色文字 */
-            font-size: 1.2em;
-            margin-bottom: 30px;
-            font-weight: 500;
-        }
-
-        /* 返回按鈕樣式 - 改為紫金漸層，象徵尊貴與智慧 */
-        .home-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #512da8 0%, #673ab7 100%);
-            color: white;
-            padding: 12px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1em;
-            box-shadow: 0 4px 15px rgba(103, 58, 183, 0.3);
-            transition: all 0.3s ease;
-            border: 2px solid white;
-        }
-
-        .home-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(103, 58, 183, 0.4);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; background-color: #FFF8E7; }
+        .tab-active { border-bottom: 4px solid #EF4444; color: #EF4444; font-weight: bold; }
+        .tab-inactive { border-bottom: 4px solid transparent; color: #6B7280; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* 網格佈局 */
-        .app-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        /* 卡片基礎樣式 */
-        .app-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            text-decoration: none;
-            color: #333;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border-top: 6px solid #ccc; /* 預設顏色 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .app-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
-
-        /* 第3冊專屬樣式 */
-        .app-card.vol-3 {
-            border-top-color: var(--vol3-color);
-        }
-        .app-card.vol-3 .card-icon {
-            background: var(--vol3-light);
-            color: var(--vol3-color);
-            border-color: #b2dfdb;
-        }
-        .app-card.vol-3 .card-title {
-            color: var(--vol3-color);
-        }
-        .app-card.vol-3:hover {
-            box-shadow: 0 12px 30px rgba(0, 137, 123, 0.15);
-        }
-
-        /* 第4冊專屬樣式 */
-        .app-card.vol-4 {
-            border-top-color: var(--vol4-color);
-        }
-        .app-card.vol-4 .card-icon {
-            background: var(--vol4-light);
-            color: var(--vol4-color);
-            border-color: #ffcdd2;
-        }
-        .app-card.vol-4 .card-title {
-            color: var(--vol4-color);
-        }
-        .app-card.vol-4:hover {
-            box-shadow: 0 12px 30px rgba(198, 40, 40, 0.15);
-        }
-
-        /* 標籤圖示 */
-        .card-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid transparent;
-        }
-
-        /* 標題 */
-        .card-title {
-            font-family: 'Noto Serif TC', serif;
-            font-size: 1.25em;
-            font-weight: 900;
-            margin-bottom: 8px;
-            min-height: 2.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* 描述文字 (包含檔案名稱) */
-        .card-desc {
-            font-size: 0.85em;
-            color: #757575;
-            line-height: 1.4;
-            margin-bottom: 15px;
-            font-family: monospace; /* 檔案名稱用等寬字體 */
-            background: #f5f5f5;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        /* 狀態標籤 */
-        .card-badge {
-            margin-top: auto;
-            padding: 5px 12px;
-            background: #4caf50; /* 預設開放綠色 */
-            color: white;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        /* 補充教材的小標籤樣式調整 */
-        .supplementary .card-badge {
-            background-color: #795548; /* 棕色 */
-        }
-        
-        /* 準備中/鎖定狀態 */
-        .card-locked {
-            filter: grayscale(1);
-            opacity: 0.6;
-            cursor: not-allowed;
-            pointer-events: none;
-            background: #fafafa;
-            border-top-color: #9e9e9e !important;
-        }
-        .card-locked .card-badge {
-            background: #9e9e9e;
-        }
-        .card-locked .card-title {
-            color: #616161 !important;
-        }
-        .card-locked .card-icon {
-            background: #eee !important;
-            color: #999 !important;
-        }
-
-        /* 分隔線 */
-        .divider {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            margin: 30px 0 10px 0;
-            color: #888;
-            font-family: 'Noto Serif TC', serif;
-            font-size: 1.2em;
-        }
-        .divider::before, .divider::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px solid #ddd;
-        }
-        .divider::before { margin-right: 15px; }
-        .divider::after { margin-left: 15px; }
-
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #F87171; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #EF4444; }
     </style>
 </head>
 <body>
+    <div id="root"></div>
 
-    <div class="header">
-        <h1>📜 英文學習 App 總部</h1>
-        <p>品味文字的奧妙，穿梭古今的文學之旅</p>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Data Definitions ---
+
+        const vocabList = [
+            { word: "salad", phonetic: "[ˈsæləd]", pos: "n.", meaning: "沙拉", example: "Amy is on a diet. She only has salad for lunch.", note: "可數或不可數。統稱用不可數，份數用可數。" },
+            { word: "hamburger / burger", phonetic: "[ˈhæmbɜːrɡər]", pos: "n.", meaning: "漢堡", example: "Which do you want for lunch, a hamburger or a ham sandwich?", note: "常簡稱為 burger。" },
+            { word: "coffee", phonetic: "[ˈkɔːfi]", pos: "n.", meaning: "咖啡", example: "Do you want your coffee black or white?", note: "black coffee = 黑咖啡。" },
+            { word: "steak", phonetic: "[steɪk]", pos: "n.", meaning: "牛排", example: "We'd like two steaks, please.", note: "熟度：rare(一分), medium(五分), well done(全熟)。" },
+            { word: "French fries", phonetic: "[frentʃ fraɪz]", pos: "n.", meaning: "薯條", example: "The French fries are crispy and delicious.", note: "英式用法為 chips。" },
+            { word: "fried chicken", phonetic: "[fraɪd ˈtʃɪkɪn]", pos: "n.", meaning: "炸雞", example: "My brother likes to eat fried chicken.", note: "fried (油炸的) + chicken。" },
+            { word: "ham", phonetic: "[hæm]", pos: "n.", meaning: "火腿", example: "Please put a piece of ham in the bun.", note: "a piece of ham (一片火腿)。" },
+            { word: "cheese", phonetic: "[tʃiːz]", pos: "n.", meaning: "起司；乳酪", example: "Judy put many pieces of cheese on the pizza.", note: "拍照時常說 Say cheese! (因為嘴型像微笑)。" },
+            { word: "pork", phonetic: "[pɔːrk]", pos: "n.", meaning: "豬肉", example: "Which do you like, the pork chop or the chicken cutlet?", note: "不可數名詞。牛肉 beef, 雞肉 chicken。" },
+            { word: "bean soup", phonetic: "[biːn suːp]", pos: "n.", meaning: "豆子湯", example: "The bean soup is my dad's specialty.", note: "不可數複合名詞。" },
+            { word: "vegetable", phonetic: "[ˈvedʒtəbl]", pos: "n.", meaning: "蔬菜", example: "Fruit and vegetables are good for you.", note: "常以複數 vegetables 出現。" },
+            { word: "pizza", phonetic: "[ˈpiːtsə]", pos: "n.", meaning: "披薩", example: "I had two slices of pizza for lunch.", note: "切片不可數，完整一個可用可數。" },
+            { word: "bun", phonetic: "[bʌn]", pos: "n.", meaning: "小圓麵包；丸子頭", example: "Those dancers wore their hair in a bun.", note: "一字多義：可指麵包或髮型。" },
+            { word: "toast", phonetic: "[toʊst]", pos: "n.", meaning: "烤麵包片", example: "Just give me a piece of toast.", note: "不可數名詞。a piece / slice of toast。" },
+            { word: "meat", phonetic: "[miːt]", pos: "n.", meaning: "肉", example: "Fry the meat quickly in hot oil.", note: "不可數名詞，泛指各種肉類。" },
+            { word: "bread", phonetic: "[bred]", pos: "n.", meaning: "麵包", example: "Please get two loaves of bread for me.", note: "不可數。一條麵包 a loaf of bread。" },
+            { word: "wall", phonetic: "[wɔːl]", pos: "n.", meaning: "牆壁；塗鴉牆", example: "The Berlin Wall fell in 1989.", note: "臉書塗鴉牆也用 wall。" },
+            { word: "meal", phonetic: "[miːl]", pos: "n.", meaning: "一餐", example: "Let me take you out for a meal.", note: "take sb out for a meal 邀請某人外出用餐。" },
+            { word: "oil", phonetic: "[ɔɪl]", pos: "n.", meaning: "油；石油", example: "We need some cooking oil to fry the eggs.", note: "cooking oil (食用油), olive oil (橄欖油)。" },
+            { word: "sound", phonetic: "[saʊnd]", pos: "v./n.", meaning: "聽起來；聲音", example: "This idea sounds great!", note: "連綴動詞 + 形容詞。" },
+            { word: "weight", phonetic: "[weɪt]", pos: "n.", meaning: "體重；重量", example: "Daphne gained a lot of weight last year.", note: "put on weight (增加體重)。" },
+            { word: "smell", phonetic: "[smel]", pos: "v./n.", meaning: "聞起來；氣味；嗅覺", example: "The dish smells delicious.", note: "sense of smell (嗅覺)。" },
+            { word: "taste", phonetic: "[teɪst]", pos: "v./n.", meaning: "嘗起來；味道；品味", example: "The black coffee tastes like medicine.", note: "taste in music (音樂品味)。" },
+            { word: "dig in / dug in", phonetic: "[dɪɡ ɪn]", pos: "phr.", meaning: "開始吃", example: "They all dug in without saying a word.", note: "dig 原意為挖掘。" },
+            { word: "soon", phonetic: "[suːn]", pos: "adv.", meaning: "很快地", example: "We will soon get to the station.", note: "how soon (多快)。" },
+            { word: "order", phonetic: "[ˈɔːrdər]", pos: "v./n.", meaning: "點餐；訂購；命令", example: "May I take your order?", note: "order sb to V (命令某人做某事)。" },
+            { word: "put on", phonetic: "[pʊt ɑːn]", pos: "phr.", meaning: "增加(體重)；穿上", example: "How many kilograms did you put on?", note: "不可分片語動詞。" },
+            { word: "get", phonetic: "[ɡet]", pos: "v.", meaning: "變得", example: "The sky gets dark early in winter.", note: "連綴動詞，後接形容詞。" },
+            { word: "notice", phonetic: "[ˈnoʊtɪs]", pos: "v./n.", meaning: "注意；看到；告示", example: "Do you notice any changes in Eddie?", note: "The notice says... (告示寫著...)" },
+            { word: "invite", phonetic: "[ɪnˈvaɪt]", pos: "v.", meaning: "邀請", example: "Sion invited Ivy to his party.", note: "invite sb to V (邀請某人做某事)。" },
+            { word: "besides", phonetic: "[bɪˈsaɪdz]", pos: "adv./prep.", meaning: "此外；而且", example: "They are smart. Besides, they work hard.", note: "也可當介系詞「除了...之外」。" },
+            { word: "probably", phonetic: "[ˈprɑːbəbli]", pos: "adv.", meaning: "也許；大概", example: "Wilson will probably come back in a week.", note: "probably not (大概不會)。" },
+            { word: "bite", phonetic: "[baɪt]", pos: "n./v.", meaning: "一口的量；咬", example: "Can I have a bite of your sandwich?", note: "過去式 bit。have a bite (咬一口)。" },
+            { word: "stand for", phonetic: "[stænd fɔːr]", pos: "phr.", meaning: "代表", example: "VIP stands for Very Important Person.", note: "常指字母縮寫或象徵。" },
+            { word: "matter", phonetic: "[ˈmætər]", pos: "v./n.", meaning: "有關係；問題", example: "What matters to you the most?", note: "What's the matter? (怎麼了？)" },
+            { word: "sign", phonetic: "[saɪn]", pos: "n.", meaning: "招牌；標誌", example: "The road sign points to the city center.", note: "What does the sign say? (標誌寫什麼？)" },
+            { word: "friendly", phonetic: "[ˈfrendli]", pos: "adj.", meaning: "(某處)令人愉快的；友善的", example: "The park is friendly to families.", note: "字尾 ly 但為形容詞。" }
+        ];
+
+        const phrasesList = [
+            { phrase: "take a look", meaning: "看一看", example: "Let me take a look at your phone to find the problem." },
+            { phrase: "worry about", meaning: "擔心", example: "I always worry about my dog when I leave him alone." },
+            { phrase: "put on weight", meaning: "增加體重", example: "Daisy keeps putting on weight though she exercises." },
+            { phrase: "take a photo of...", meaning: "拍...的照片", example: "You should take a photo of this in case you forget it." },
+            { phrase: "dig in", meaning: "開始吃", example: "Why don't you dig in? We're running out of time!" },
+            { phrase: "stand for", meaning: "代表", example: "The stars on the flag stand for the fifty states." },
+            { phrase: "spill the beans", meaning: "洩漏秘密", example: "It's a surprise party, so you'd better not spill the beans." }
+        ];
+
+        const grammarData = [
+            {
+                title: "一、連綴動詞 (Linking Verbs)",
+                description: "連綴動詞用來連接主詞和主詞補語(形容詞或名詞)，說明主詞的性質、狀態或感覺。",
+                sections: [
+                    {
+                        subtitle: "1. 表達「感官知覺」的連綴動詞",
+                        rules: ["look (看起來)", "smell (聞起來)", "sound (聽起來)", "taste (嘗起來)", "feel (感覺起來)"],
+                        formulas: [
+                            "主詞 + 連綴動詞 + 形容詞 (The food smells good.)",
+                            "主詞 + 連綴動詞 + like + 名詞 (It tastes like chicken.)",
+                            "問句: How does/do + 主詞 + 連綴動詞? (How does the cake taste?)",
+                            "問句: What does/do + 主詞 + 連綴動詞 + like? (What does it look like?)"
+                        ]
+                    },
+                    {
+                        subtitle: "2. 表達「狀態改變」的連綴動詞",
+                        rules: ["get (變得)", "become (變成)", "turn (轉變)", "grow (漸漸變得)"],
+                        formulas: [
+                            "主詞 + get/become + 形容詞 (We got cold because it rained.)",
+                            "進行式強調改變過程: The weather is getting hot. (天氣漸漸變熱)"
+                        ]
+                    },
+                    {
+                        subtitle: "3. 連綴動詞搭配比較級",
+                        rules: [],
+                        formulas: [
+                            "主詞 + 連綴動詞 + 比較級 (The soup tastes better.)",
+                            "越來越... : 主詞 + 連綴動詞 + adj-er and adj-er (The sky looked darker and darker.)"
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "二、使役動詞 (Causative Verbs)",
+                description: "用來表達「讓某人做某事」或「強迫/允許某人做某事」。",
+                sections: [
+                    {
+                        subtitle: "常見使役動詞用法",
+                        rules: [
+                            "make (強迫; 語氣最強)", 
+                            "have (要/吩咐; 語氣居中)", 
+                            "let (允許/讓; 語氣最弱)"
+                        ],
+                        formulas: [
+                            "肯定句: 主詞 + make/have/let + 受詞 + 原形動詞 (Mom let me go.)",
+                            "否定句: 主詞 + aux + not + make/have/let + 受詞 + 原形動詞 (He didn't let me drive.)",
+                            "★ make 的特殊用法: make + 受詞 + 形容詞/名詞 (The news made us sad.)"
+                        ]
+                    },
+                    {
+                        subtitle: "補充：help 的用法 (help 不是使役動詞，但常一起考)",
+                        rules: ["help 可以接原形動詞，也可以接 to V。"],
+                        formulas: [
+                            "help + 受詞 + (to) + 原形動詞 (Frank helps me (to) wash the car.)",
+                            "help + 受詞 + with + 名詞 (Help me with my homework.)"
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const textAnalysisData = [
+            {
+                type: "Dialogue 1",
+                title: "On the sidewalk (在人行道上)",
+                content: [
+                    { en: "Eddie: How do you feel about this restaurant?", zh: "Eddie: 妳覺得這間餐廳如何？" },
+                    { en: "Bella: It looks dark from the outside. I don't want to have lunch here.", zh: "Bella: 它從外面看起來黑漆漆的。我不想要在這裡吃午餐。" },
+                    { en: "Eddie: What about that one?", zh: "Eddie: 那麼那間如何？" },
+                    { en: "Bella: It looks brighter, and its green and white walls make me think of healthy meals.", zh: "Bella: 它看起來比較明亮，而且它的綠色和白色牆壁讓我聯想到健康的餐點。" },
+                    { en: "Eddie: There's a menu outside the front door. Let's take a look.", zh: "Eddie: 前門外頭有菜單。我們瞧瞧吧。" },
+                    { en: "Bella: It says, 'We use less oil, salt, and sugar. Come in and enjoy our delicious food.'", zh: "Bella: 菜單上寫著：「我們使用少油、少鹽和少糖。歡迎進來享用我們的美味佳肴。」" },
+                    { en: "Eddie: That sounds good. We can order anything and don't have to worry about putting on weight.", zh: "Eddie: 那聽起來不錯。我們可以點任何餐點而不必擔心變胖。" },
+                    { en: "Bella: Then let's have lunch here.", zh: "Bella: 那我們在這裡吃午餐吧。" }
+                ],
+                notes: ["What about + N/V-ing? (...如何？)", "make me think of (讓我想到)", "It says... (上面寫著...) 用於標誌、菜單等", "don't have to (不必)"]
+            },
+            {
+                type: "Dialogue 2",
+                title: "In the restaurant (在餐廳裡)",
+                content: [
+                    { en: "Bella: Our food is here. It smells good.", zh: "Bella: 我們的餐點來了。聞起來真美味。" },
+                    { en: "Eddie: Wow! Your rice looks like cute pandas. How does it taste?", zh: "Eddie: 哇！妳的飯看起來像可愛的熊貓。它味道如何？" },
+                    { en: "Bella: Yum. It tastes delicious.", zh: "Bella: 好吃。它嘗起來很美味。" },
+                    { en: "Eddie: How about your salad?", zh: "Eddie: 妳的沙拉嘗起來如何？" },
+                    { en: "Bella: I love it. It tastes really fresh. Hey, what are you waiting for? Aren't you hungry?", zh: "Bella: 我喜歡它。它嘗起來真的很新鮮。嘿，你還在等什麼呢？你不餓嗎？" },
+                    { en: "Eddie: Yes, I am, but I want to take a photo of my food first.", zh: "Eddie: 是啊，我很餓，但是我想先拍張食物的照片。" },
+                    { en: "Bella: You should dig in soon, or it will get cold.", zh: "Bella: 你應該快點吃，否則它將會變冷。" }
+                ],
+                notes: ["What are you waiting for? (還在等什麼？催促語氣)", "take a photo of... (拍...的照片)", "dig in (開動/開始吃)", "..., or + 句子 (否則...)"]
+            },
+            {
+                type: "Reading",
+                title: "Behind the Colors of a Restaurant Sign (餐廳招牌顏色背後的秘密)",
+                content: [
+                    { en: "Some people may go to a restaurant because its food tastes great.", zh: "有些人去到一家餐廳用餐，也許是因為它的食物嘗起來很棒。" },
+                    { en: "Other people may go there because it looks like a nice place.", zh: "另一些人到那裡用餐，也許是因為看起來環境很好。" },
+                    { en: "Still other people may go there because of the colors of its store sign.", zh: "還有一些人到那裡用餐，也許是受到餐廳招牌顏色的影響。" },
+                    { en: "For example, many fast food restaurants use yellow and red in their signs because yellow makes people feel happy and red invites people into the stores.", zh: "舉例來說，許多速食餐廳在它們的招牌上運用黃色和紅色，因為黃色使人感到快樂，而紅色則傳遞出邀請客人進來店裡的感覺。" },
+                    { en: "These two colors help the restaurants look brighter and friendlier.", zh: "這兩種顏色讓餐廳看起來更明亮、更令人愉快。" },
+                    { en: "Besides, when people see these two colors, they will become hungry and probably go in for a bite.", zh: "此外，當人們看到這兩種顏色時，他們會變得飢腸轆轆，並且可能入內用餐。" },
+                    { en: "Other colors are popular, too. For example, some fast food restaurants use green in their signs.", zh: "其他的顏色也很受歡迎。舉例來說，有些餐廳在招牌上運用綠色。" },
+                    { en: "For most people, the color stands for nature, and that makes them feel more comfortable when they have their meals.", zh: "對多數人來說，綠色代表大自然，那會讓人們在用餐時感到比較舒適。" },
+                    { en: "In the restaurant business, colors really matter.", zh: "在餐廳生意上，配色真的很重要。" }
+                ],
+                notes: ["Some... Other... Still other... (一些... 另一些... 還有一些...)", "because of + Noun (因為...)", "makes people feel happy (make + O + VR)", "stand for (代表)", "matter (動詞：要緊/重要)"]
+            }
+        ];
+
+        // --- 80 High Difficulty Questions (Programmatically generated to meet the exact request) ---
+        // Questions cover: 1-20 Vocab, 21-40 Linking Verbs, 41-60 Causative Verbs & Idioms, 61-80 Reading/Translation/Advanced
         
-        <!-- 返回百寶箱按鈕 -->
-        <a href="https://nicktsai88.github.io/List/" class="home-btn">
-            🎁 返回快樂學習百寶箱
-        </a>
-    </div>
+        const generateQuestions = () => {
+            const q = [];
+            // 1-20 Vocab & Phrasal Verbs
+            q.push({ q: "1. The sign on the door ____ 'No Eating or Drinking'.", options: ["says", "tells", "speaks", "talks"], ans: 0, exp: "標誌、菜單等「寫著」使用動詞 say。" });
+            q.push({ q: "2. The doctor told my dad to lose some ____ because he is too heavy.", options: ["wait", "weight", "weigh", "wheight"], ans: 1, exp: "體重為名詞 weight。" });
+            q.push({ q: "3. My stomach is growling. What are we waiting for? Let's ____!", options: ["put on", "stand for", "dig in", "spill the beans"], ans: 2, exp: "dig in 意為「開動、開始吃」。" });
+            q.push({ q: "4. The letters 'VIP' ____ Very Important Person.", options: ["stand for", "look like", "make up", "worry about"], ans: 0, exp: "stand for 代表 / 是...的縮寫。" });
+            q.push({ q: "5. I'd like to place an ____ for three large pizzas and some fried chicken.", options: ["order", "sign", "matter", "oil"], ans: 0, exp: "place an order 下訂單 / 點餐。" });
+            q.push({ q: "6. ____ French fries, we also ordered a large vegetable salad.", options: ["Beside", "Besides", "Except", "However"], ans: 1, exp: "besides (除此之外還有)。beside 是在旁邊。" });
+            q.push({ q: "7. The soup has very little ____. Did you forget to put salt in it?", options: ["smell", "taste", "sound", "meal"], ans: 1, exp: "taste 在此作名詞，意為「味道」。" });
+            q.push({ q: "8. Eating too much fast food will make you ____ weight easily.", options: ["put on", "take off", "get up", "dig in"], ans: 0, exp: "put on weight 增加體重。" });
+            q.push({ q: "9. This restaurant is very ____ to kids. They even have a playground inside.", options: ["friend", "friendly", "friendship", "friends"], ans: 1, exp: "friendly 友善的 (形容詞)。" });
+            q.push({ q: "10. Don't worry about the small details. They don't ____ at all.", options: ["stand", "notice", "matter", "probably"], ans: 2, exp: "matter 作動詞，意為「重要、有關係」。" });
+            q.push({ q: "11. The ____ outside the store is so bright that everyone can see it at night.", options: ["sign", "bun", "toast", "pork"], ans: 0, exp: "sign 招牌 / 標誌。" });
+            q.push({ q: "12. I'll have a hamburger and some ____, please. Oh, and a cup of black coffee.", options: ["French fries", "France fries", "French fry", "France fry"], ans: 0, exp: "薯條為 French fries (複數)。" });
+            q.push({ q: "13. Some people don't eat ____ because it's against their religion.", options: ["salad", "vegetables", "pork", "toast"], ans: 2, exp: "pork 豬肉。" });
+            q.push({ q: "14. Mom, can I have a ____ of your sandwich? I am so hungry.", options: ["bite", "bit", "sign", "meal"], ans: 0, exp: "have a bite 咬一口。" });
+            q.push({ q: "15. I didn't ____ that Kevin cut his hair until he told me.", options: ["invite", "taste", "smell", "notice"], ans: 3, exp: "notice 注意到。" });
+            q.push({ q: "16. We decided to take Mary out for a ____ to celebrate her birthday.", options: ["meal", "meat", "bun", "oil"], ans: 0, exp: "take sb out for a meal 帶某人出去吃大餐。" });
+            q.push({ q: "17. The bread smells ____. Did you bake it yourself?", options: ["good", "well", "like good", "to be good"], ans: 0, exp: "smell (聞起來) 為連綴動詞，後接形容詞 good。" });
+            q.push({ q: "18. Who did you ____ to your party this weekend?", options: ["invite", "notice", "order", "matter"], ans: 0, exp: "invite 邀請。" });
+            q.push({ q: "19. The weather will ____ rain tomorrow, so bring an umbrella.", options: ["possible", "probably", "friendly", "soon"], ans: 1, exp: "probably 大概 / 也許 (副詞)。" });
+            q.push({ q: "20. The ____ fell in 1989, changing the history of Germany.", options: ["Sign", "Wall", "Meal", "Order"], ans: 1, exp: "the Berlin Wall 柏林圍牆。" });
 
-    <div class="app-grid">
-        
+            // 21-40 Linking Verbs
+            q.push({ q: "21. A: ____ does the soup taste? B: It tastes a little salty.", options: ["How", "What", "Why", "When"], ans: 0, exp: "詢問「如何」用 How does... taste?" });
+            q.push({ q: "22. A: ____ does the cloud look like? B: It looks like a rabbit.", options: ["How", "What", "Which", "Who"], ans: 1, exp: "詢問「像什麼」用 What does... look like?" });
+            q.push({ q: "23. The milk tea ____ great. Can I have another cup?", options: ["is tasting", "tasted like", "tastes", "tastes to be"], ans: 2, exp: "連綴動詞通常不用進行式，且直接接形容詞。" });
+            q.push({ q: "24. After a long walk, the kids ____ tired and hungry.", options: ["got", "sounded", "tasted", "smelled"], ans: 0, exp: "get/got + adj 表示「變得」。" });
+            q.push({ q: "25. As time went by, the sky got ____.", options: ["dark and dark", "darker and darker", "more and more dark", "the darkest"], ans: 1, exp: "越來越... : 比較級 and 比較級。" });
+            q.push({ q: "26. The man on the phone sounded ____ your uncle.", options: ["like", "as", "to be", "with"], ans: 0, exp: "sound like + 名詞 (聽起來像)。" });
+            q.push({ q: "27. The music sounds ____. Please turn it off.", options: ["terrible", "terribly", "like terrible", "to be terrible"], ans: 0, exp: "sound 後接形容詞。" });
+            q.push({ q: "28. Fall is here. The leaves are ____ yellow and red.", options: ["getting to", "looking", "turning", "smelling"], ans: 2, exp: "turn 也有「轉變狀態(顏色)」的意思。" });
+            q.push({ q: "29. My dad ____ angry when he saw my math test score.", options: ["became", "looked like", "felt like", "sounded like"], ans: 0, exp: "become + adj (變得)。" });
+            q.push({ q: "30. Does this jacket ____ good on me?", options: ["look", "see", "watch", "make"], ans: 0, exp: "look good on sb (某人穿起來好看)。" });
+            q.push({ q: "31. The fish ____ bad. Don't eat it.", options: ["smells", "smells like", "is smelling", "is smelled"], ans: 0, exp: "smell bad (聞起來壞掉了)。不用進行式。" });
+            q.push({ q: "32. The actress is getting ____ beautiful.", options: ["more and more", "much and much", "most and most", "beautifuler and beautifuler"], ans: 0, exp: "多音節形容詞的越來越...：more and more + adj。" });
+            q.push({ q: "33. Who ____ she look like? Her mom or her dad?", options: ["is", "does", "do", "has"], ans: 1, exp: "look 在此為一般動詞，需助動詞 does。" });
+            q.push({ q: "34. The cake ____ sweet. I like it very much.", options: ["tastes", "tastes like", "is tasted", "tasting"], ans: 0, exp: "連綴動詞 taste + adj。" });
+            q.push({ q: "35. It ____ like it's going to rain. Look at those dark clouds.", options: ["looks", "sees", "watches", "gets"], ans: 0, exp: "It looks like + 子句 (看起來像...)" });
+            q.push({ q: "36. I don't feel ____ eating anything right now.", options: ["like", "as", "to", "X"], ans: 0, exp: "feel like + V-ing (想要...)" });
+            q.push({ q: "37. He looks ____ a friendly person.", options: ["X", "like", "as", "to be"], ans: 1, exp: "look like + 名詞片語。" });
+            q.push({ q: "38. This bed feels very ____.", options: ["comfortable", "comfortably", "comfort", "like comfortable"], ans: 0, exp: "feel + 形容詞。" });
+            q.push({ q: "39. The idea sounds ____ to me.", options: ["interesting", "interestingly", "interested", "interest"], ans: 0, exp: "idea 令人覺得有趣的用 interesting。" });
+            q.push({ q: "40. The dish tasted ____ than it looked.", options: ["well", "better", "best", "good"], ans: 1, exp: "比較級：嘗起來比看起來「更好」(better)。" });
 
-        <!-- ================= 第4冊 (朱砂紅) ================= -->
+            // 41-60 Causative Verbs & Idioms
+            q.push({ q: "41. My mom made me ____ my room before I could go out.", options: ["clean", "to clean", "cleaned", "cleaning"], ans: 0, exp: "make + O + VR (原形動詞)。" });
+            q.push({ q: "42. The teacher had the students ____ down the rules.", options: ["to write", "wrote", "write", "writing"], ans: 2, exp: "have + O + VR。" });
+            q.push({ q: "43. Will your parents let you ____ to the party tonight?", options: ["go", "to go", "going", "went"], ans: 0, exp: "let + O + VR。" });
+            q.push({ q: "44. The sad movie made everyone ____.", options: ["cry", "to cry", "crying", "cried"], ans: 0, exp: "make + O + VR。" });
+            q.push({ q: "45. Please help me ____ these heavy boxes.", options: ["carried", "carrying", "carry", "carries"], ans: 2, exp: "help + O + (to) VR。此處 carry 為正解。" });
+            q.push({ q: "46. His words made me very ____.", options: ["angry", "angrily", "to anger", "angered"], ans: 0, exp: "make + O + 形容詞。" });
+            q.push({ q: "47. I didn't have my brother ____ the car yesterday.", options: ["wash", "to wash", "washed", "washing"], ans: 0, exp: "have + O + VR。否定句型不變。" });
+            q.push({ q: "48. Don't let the cat ____ out of the house.", options: ["run", "to run", "running", "ran"], ans: 0, exp: "let + O + VR。" });
+            q.push({ q: "49. The boss ____ the workers work for 12 hours a day.", options: ["makes", "asks", "tells", "wants"], ans: 0, exp: "後接 VR (work)，只能選使役動詞 makes。其餘須加 to。" });
+            q.push({ q: "50. Can you help me ____ my English homework?", options: ["with", "to", "for", "on"], ans: 0, exp: "help sb with Noun。" });
+            q.push({ q: "51. I'm planning a surprise party. Don't ____!", options: ["spill the beans", "stand for", "dig in", "take a look"], ans: 0, exp: "spill the beans 洩漏秘密。" });
+            q.push({ q: "52. Hurry up, ____ you will be late for the movie.", options: ["or", "and", "so", "but"], ans: 0, exp: "祈使句 + or + 句子 (否則...)。" });
+            q.push({ q: "53. What are you waiting ____? Let's go!", options: ["for", "to", "at", "about"], ans: 0, exp: "wait for (等待)。What are you waiting for? (還在等什麼)" });
+            q.push({ q: "54. Let me take a ____ at the map. I think we are lost.", options: ["look", "see", "watch", "view"], ans: 0, exp: "take a look at... (看一看)。" });
+            q.push({ q: "55. They took many photos ____ the beautiful castle.", options: ["of", "for", "with", "about"], ans: 0, exp: "take a photo of... (拍...的照片)。" });
+            q.push({ q: "56. I want to take a photo ____ the famous singer.", options: ["with", "of", "to", "for"], ans: 0, exp: "和某人合照用 take a photo with sb。" });
+            q.push({ q: "57. The news made her ____ a successful business woman.", options: ["become", "to become", "becoming", "became"], ans: 0, exp: "make + O + VR。" });
+            q.push({ q: "58. Does your mom make you ____ up early on weekends?", options: ["get", "to get", "got", "getting"], ans: 0, exp: "make + O + VR。" });
+            q.push({ q: "59. Let's go out for a meal tonight, ____ we?", options: ["shall", "will", "do", "don't"], ans: 0, exp: "Let's... 的附加問句為 shall we? (進階文法補充)" });
+            q.push({ q: "60. She asked me ____ the window.", options: ["to open", "open", "opening", "opened"], ans: 0, exp: "ask 不是使役動詞，需用 ask sb to V。" });
 
-        <div class="divider">第 4 冊</div>
+            // 61-80 Reading, Translation & Mixed Grammar (High Difficulty)
+            q.push({ q: "61. Many fast food restaurants use red in their signs because red ____.", options: ["invites people in", "makes people sleepy", "stands for nature", "looks like tomatoes"], ans: 0, exp: "課文提到 red invites people into the stores." });
+            q.push({ q: "62. What does the color green stand for in the restaurant business?", options: ["Nature", "Money", "Hunger", "Danger"], ans: 0, exp: "綠色代表大自然 (nature)，讓人感到舒適。" });
+            q.push({ q: "63. 'Some... Other... Still other...' is used to talk about ____ groups.", options: ["three", "two", "four", "one"], ans: 0, exp: "這三個字詞用來分列「三種」不同的群體。" });
+            q.push({ q: "64. 'Because of' must be followed by a ____.", options: ["noun/V-ing", "complete sentence", "verb", "adjective"], ans: 0, exp: "because of 是介系詞，後接名詞或動名詞。" });
+            q.push({ q: "65. Yellow and red make people feel hungry, ____ they probably go in for a bite.", options: ["so", "because", "but", "or"], ans: 0, exp: "前面是原因，後面是結果，用 so 連接。" });
+            q.push({ q: "66. When Gordon ____ you tomorrow, he will be very happy.", options: ["sees", "will see", "saw", "is seeing"], ans: 0, exp: "在 when 引導的未來時間副詞子句中，用現在式代替未來式。" });
+            q.push({ q: "67. We use ____ oil, salt, and sugar to make our food healthier.", options: ["less", "fewer", "little", "few"], ans: 0, exp: "oil, salt, sugar 為不可數，比較級用 less。" });
+            q.push({ q: "68. Which sentence is grammatically INCORRECT?", options: ["He had me to clean the room.", "He made me clean the room.", "He let me clean the room.", "He helped me clean the room."], ans: 0, exp: "have 為使役動詞，後接原形，不可加 to。" });
+            q.push({ q: "69. ____ English, I am also good at math.", options: ["Besides", "Beside", "Except", "Behind"], ans: 0, exp: "Besides (除了...之外還有)。" });
+            q.push({ q: "70. It says ____ the bottle to take two pills a day.", options: ["on", "in", "at", "with"], ans: 0, exp: "在瓶子上寫著：say on the bottle。" });
+            q.push({ q: "71. 'What about that one?' In this sentence, 'one' refers to ____.", options: ["a restaurant", "a person", "a meal", "a sign"], ans: 0, exp: "對話中，one 代替前面提到的 restaurant。" });
+            q.push({ q: "72. I don't want to go out ____ the heavy rain.", options: ["because of", "because", "so", "but"], ans: 0, exp: "the heavy rain 是名詞片語，需用 because of。" });
+            q.push({ q: "73. The movie was so boring that it made me ____ asleep.", options: ["fall", "to fall", "fell", "falling"], ans: 0, exp: "make + O + VR (fall asleep)。" });
+            q.push({ q: "74. The soup smells ____, but it tastes ____.", options: ["good; bad", "well; badly", "good; badly", "well; bad"], ans: 0, exp: "連綴動詞前後皆須接形容詞 (good, bad)。" });
+            q.push({ q: "75. 'In the restaurant business, colors really matter.' 'matter' here means ____.", options: ["are important", "are a problem", "are a sign", "are friendly"], ans: 0, exp: "matter 在此為動詞，意為「重要」。" });
+            q.push({ q: "76. Why didn't Bella want to eat at the first restaurant?", options: ["It looked dark outside.", "It was too expensive.", "She didn't like hamburgers.", "It was full of people."], ans: 0, exp: "課文：It looks dark from the outside." });
+            q.push({ q: "77. What did Eddie's rice look like in the restaurant?", options: ["Cute pandas", "A dog", "A flower", "A star"], ans: 0, exp: "課文：Your rice looks like cute pandas." });
+            q.push({ q: "78. You'd better ____ the beans, or she will be angry.", options: ["not spill", "not to spill", "spill not", "to not spill"], ans: 0, exp: "had better + not VR (最好不要...)。" });
+            q.push({ q: "79. I saw him ____ the cake just now. It must be him!", options: ["eating", "to eat", "ate", "eaten"], ans: 0, exp: "感官動詞 see + O + V-ing/VR。此處 eating 表進行中。" });
+            q.push({ q: "80. Which of the following is NOT a linking verb?", options: ["enjoy", "taste", "sound", "feel"], ans: 0, exp: "enjoy 是一般動詞，不是連綴動詞。" });
 
-        <!-- L1 -->
-        <a href="English4-L1.html" class="app-card vol-4">
-            <div class="card-icon">🏃</div>
-            <div class="card-title">L1</div>
-            <div class="card-desc">English-4-L1.html</div>
-            <div class="card-badge">開放中</div>
-        </a>
+            return q;
+        };
 
-        <!-- L2 -->
-        <a href="English4-L2.html" class="app-card vol-4">
-            <div class="card-icon">⚔️</div>
-            <div class="card-title">L2</div>
-            <div class="card-desc">English4-L2.html</div>
-            <div class="card-badge">開放中</div>
-        </a>
+        const quizQuestions = generateQuestions();
 
-        <!-- L3 -->
-        <a href="English4-L3.html" class="app-card vol-4 supplementary">
-            <div class="card-icon">📝</div>
-            <div class="card-title">L3 Our Food Smells Good<br>課文內容練習</div>
-            <div class="card-desc">English4-L3.html</div>
-            <div class="card-badge">開放中</div>
-        </a>
+        // --- Components ---
 
-    </div>
+        const Navbar = ({ activeTab, setActiveTab }) => (
+            <nav className="bg-white shadow-md sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex justify-between items-center py-4">
+                        <div className="flex items-center space-x-2 text-red-500 font-bold text-xl md:text-2xl">
+                            <i className="fa-solid fa-burger"></i>
+                            <span>L3 Our Food Smells Good</span>
+                        </div>
+                        <div className="flex space-x-4 md:space-x-8">
+                            <button 
+                                onClick={() => setActiveTab('learning')}
+                                className={`pb-1 px-2 transition duration-300 ${activeTab === 'learning' ? 'tab-active' : 'tab-inactive hover:text-red-400'}`}>
+                                <i className="fa-solid fa-book-open mr-2"></i>學習介面
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('quiz')}
+                                className={`pb-1 px-2 transition duration-300 ${activeTab === 'quiz' ? 'tab-active' : 'tab-inactive hover:text-red-400'}`}>
+                                <i className="fa-solid fa-pen-clip mr-2"></i>魔鬼測驗 (80題)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        );
 
+        // Learning Views
+        const VocabView = () => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
+                {vocabList.map((item, idx) => (
+                    <div key={idx} className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition border-l-4 border-yellow-400 relative group cursor-pointer">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-bold text-gray-800">{item.word}</h3>
+                            <span className="text-sm font-semibold text-white bg-red-400 px-2 py-1 rounded">{item.pos}</span>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-2">{item.phonetic}</p>
+                        <p className="text-lg font-bold text-green-700 mb-3">{item.meaning}</p>
+                        <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded hidden group-hover:block absolute z-10 w-full left-0 top-full mt-1 shadow-xl border border-gray-200">
+                            <p className="mb-1"><i className="fa-solid fa-comment-dots text-yellow-500 mr-1"></i> <strong>例句:</strong> {item.example}</p>
+                            <p><i className="fa-solid fa-lightbulb text-yellow-500 mr-1"></i> <strong>解析:</strong> {item.note}</p>
+                        </div>
+                        <p className="text-xs text-gray-400 group-hover:hidden"><i className="fa-solid fa-hand-pointer mr-1"></i>滑鼠移入看解析</p>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const PhrasesView = () => (
+            <div className="space-y-4 fade-in">
+                {phrasesList.map((item, idx) => (
+                    <div key={idx} className="bg-white p-5 rounded-xl shadow flex flex-col md:flex-row md:items-center justify-between border-l-4 border-blue-400">
+                        <div className="md:w-1/3">
+                            <h3 className="text-xl font-bold text-gray-800">{item.phrase}</h3>
+                            <p className="text-lg font-bold text-blue-600">{item.meaning}</p>
+                        </div>
+                        <div className="md:w-2/3 mt-2 md:mt-0 bg-blue-50 p-3 rounded">
+                            <p className="text-gray-700"><strong>例句:</strong> {item.example}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const GrammarView = () => (
+            <div className="space-y-8 fade-in">
+                {grammarData.map((grammar, idx) => (
+                    <div key={idx} className="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div className="bg-red-500 text-white p-4">
+                            <h2 className="text-2xl font-bold">{grammar.title}</h2>
+                            <p className="text-red-100 mt-1">{grammar.description}</p>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {grammar.sections.map((sec, sIdx) => (
+                                <div key={sIdx} className="border-l-4 border-yellow-400 pl-4">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2">{sec.subtitle}</h3>
+                                    {sec.rules.length > 0 && (
+                                        <ul className="list-disc list-inside text-gray-700 mb-3 space-y-1">
+                                            {sec.rules.map((rule, rIdx) => <li key={rIdx}>{rule}</li>)}
+                                        </ul>
+                                    )}
+                                    <div className="bg-gray-50 p-4 rounded-lg space-y-2 font-mono text-sm text-indigo-800">
+                                        {sec.formulas.map((form, fIdx) => <p key={fIdx}>✅ {form}</p>)}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const ReadingView = () => {
+            const [showZh, setShowZh] = useState(true);
+            return (
+                <div className="fade-in space-y-6">
+                    <div className="flex justify-end mb-4">
+                        <button 
+                            onClick={() => setShowZh(!showZh)}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 px-4 rounded shadow transition">
+                            <i className="fa-solid fa-language mr-2"></i>
+                            {showZh ? '隱藏中文翻譯' : '顯示中文翻譯'}
+                        </button>
+                    </div>
+                    {textAnalysisData.map((text, idx) => (
+                        <div key={idx} className="bg-white rounded-xl shadow overflow-hidden">
+                            <div className="bg-green-600 text-white p-3 px-5 flex justify-between items-center">
+                                <span className="font-bold bg-green-800 px-2 py-1 rounded text-xs">{text.type}</span>
+                                <h3 className="text-lg font-bold">{text.title}</h3>
+                            </div>
+                            <div className="p-5">
+                                <div className="space-y-4 mb-6">
+                                    {text.content.map((line, lIdx) => (
+                                        <div key={lIdx} className={`p-3 rounded ${lIdx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                                            <p className="text-gray-800 font-medium text-lg">{line.en}</p>
+                                            {showZh && <p className="text-green-700 mt-1">{line.zh}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                                    <h4 className="font-bold text-yellow-800 mb-2"><i className="fa-solid fa-star mr-1"></i>重點句型與解析</h4>
+                                    <ul className="list-disc list-inside text-gray-700 space-y-1">
+                                        {text.notes.map((note, nIdx) => <li key={nIdx}>{note}</li>)}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const LearningInterface = () => {
+            const [activeSection, setActiveSection] = useState('vocab');
+            
+            const sections = [
+                { id: 'vocab', name: '字詞與解析', icon: 'fa-spell-check' },
+                { id: 'phrases', name: '片語與慣用語', icon: 'fa-quote-right' },
+                { id: 'grammar', name: '語法說明', icon: 'fa-book' },
+                { id: 'reading', name: '課文解析', icon: 'fa-glasses' }
+            ];
+
+            return (
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Sidebar */}
+                    <div className="md:w-1/4">
+                        <div className="bg-white rounded-xl shadow p-4 sticky top-24 space-y-2">
+                            <h2 className="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 px-2">學習選單</h2>
+                            {sections.map(sec => (
+                                <button 
+                                    key={sec.id}
+                                    onClick={() => setActiveSection(sec.id)}
+                                    className={`w-full text-left px-4 py-3 rounded-lg font-bold transition flex items-center ${activeSection === sec.id ? 'bg-red-500 text-white shadow-md' : 'text-gray-600 hover:bg-red-50 hover:text-red-500'}`}>
+                                    <i className={`fa-solid ${sec.icon} w-6`}></i>
+                                    {sec.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Content */}
+                    <div className="md:w-3/4">
+                        <div className="mb-6 flex items-center">
+                            <h1 className="text-3xl font-extrabold text-gray-800 border-l-8 border-yellow-400 pl-4">
+                                {sections.find(s => s.id === activeSection).name}
+                            </h1>
+                        </div>
+                        {activeSection === 'vocab' && <VocabView />}
+                        {activeSection === 'phrases' && <PhrasesView />}
+                        {activeSection === 'grammar' && <GrammarView />}
+                        {activeSection === 'reading' && <ReadingView />}
+                    </div>
+                </div>
+            );
+        };
+
+        // Quiz Interface
+        const QuizInterface = () => {
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showExp, setShowExp] = useState(false);
+            const [selectedOpt, setSelectedOpt] = useState(null);
+            const [isFinished, setIsFinished] = useState(false);
+            const [wrongAnswers, setWrongAnswers] = useState([]);
+
+            const currentQ = quizQuestions[qIndex];
+
+            const handleAnswer = (optIndex) => {
+                if (showExp) return; // Prevent multiple clicks
+                setSelectedOpt(optIndex);
+                setShowExp(true);
+                
+                if (optIndex === currentQ.ans) {
+                    setScore(score + 1);
+                } else {
+                    setWrongAnswers([...wrongAnswers, { ...currentQ, userAns: currentQ.options[optIndex] }]);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (qIndex < quizQuestions.length - 1) {
+                    setQIndex(qIndex + 1);
+                    setShowExp(false);
+                    setSelectedOpt(null);
+                } else {
+                    setIsFinished(true);
+                }
+            };
+
+            const restartQuiz = () => {
+                setQIndex(0);
+                setScore(0);
+                setShowExp(false);
+                setSelectedOpt(null);
+                setIsFinished(false);
+                setWrongAnswers([]);
+            };
+
+            if (isFinished) {
+                const passRate = Math.round((score / quizQuestions.length) * 100);
+                return (
+                    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl p-8 text-center fade-in">
+                        <h2 className="text-4xl font-extrabold text-gray-800 mb-4">測驗結束！</h2>
+                        <div className="w-48 h-48 mx-auto rounded-full border-8 border-gray-100 flex items-center justify-center relative mb-6">
+                            <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="88" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-gray-200" />
+                                <circle cx="96" cy="96" r="88" stroke="currentColor" strokeWidth="16" fill="transparent" 
+                                    strokeDasharray={`${passRate * 5.5} 600`} 
+                                    className={passRate >= 80 ? "text-green-500" : passRate >= 60 ? "text-yellow-500" : "text-red-500"} />
+                            </svg>
+                            <div className="text-center">
+                                <span className="text-5xl font-bold">{score}</span>
+                                <span className="text-xl text-gray-500"> / {quizQuestions.length}</span>
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold mb-8 text-gray-700">
+                            {passRate >= 80 ? "太棒了！你已經完全掌握 L3！ 🎉" : passRate >= 60 ? "表現不錯，但還有進步空間！ 💪" : "需要再多複習一下喔！ 📚"}
+                        </p>
+                        
+                        <button onClick={restartQuiz} className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:-translate-y-1 mb-10">
+                            <i className="fa-solid fa-rotate-right mr-2"></i> 再挑戰一次
+                        </button>
+
+                        {wrongAnswers.length > 0 && (
+                            <div className="text-left mt-8">
+                                <h3 className="text-2xl font-bold text-red-600 border-b-2 border-red-200 pb-2 mb-4"><i className="fa-solid fa-triangle-exclamation mr-2"></i>錯題回顧</h3>
+                                <div className="space-y-4">
+                                    {wrongAnswers.map((wq, idx) => (
+                                        <div key={idx} className="bg-red-50 p-4 rounded-lg border border-red-100">
+                                            <p className="font-bold text-gray-800 mb-2">{wq.q}</p>
+                                            <p className="text-red-500"><i className="fa-solid fa-xmark mr-1"></i>你的答案: {wq.userAns}</p>
+                                            <p className="text-green-600"><i className="fa-solid fa-check mr-1"></i>正確答案: {wq.options[wq.ans]}</p>
+                                            <p className="text-gray-600 mt-2 text-sm bg-white p-2 rounded"><i className="fa-solid fa-lightbulb text-yellow-500 mr-1"></i>解析: {wq.exp}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-3xl mx-auto fade-in">
+                    <div className="flex justify-between items-center mb-4">
+                        <span className="bg-yellow-400 text-yellow-900 font-bold px-3 py-1 rounded-full text-sm">Question {qIndex + 1} / {quizQuestions.length}</span>
+                        <span className="font-bold text-gray-600">Score: <span className="text-red-500">{score}</span></span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                        <div className="bg-red-500 h-2.5 rounded-full transition-all duration-300" style={{ width: `${((qIndex) / quizQuestions.length) * 100}%` }}></div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-8 leading-relaxed">{currentQ.q}</h2>
+                        
+                        <div className="space-y-3 mb-8">
+                            {currentQ.options.map((opt, idx) => {
+                                let btnClass = "w-full text-left p-4 rounded-xl border-2 transition font-medium text-lg focus:outline-none ";
+                                if (!showExp) {
+                                    btnClass += "border-gray-200 hover:border-red-400 hover:bg-red-50 text-gray-700";
+                                } else {
+                                    if (idx === currentQ.ans) {
+                                        btnClass += "border-green-500 bg-green-50 text-green-800"; // Correct answer
+                                    } else if (idx === selectedOpt) {
+                                        btnClass += "border-red-500 bg-red-50 text-red-800"; // Wrong selected
+                                    } else {
+                                        btnClass += "border-gray-200 text-gray-400 opacity-50"; // Unselected
+                                    }
+                                }
+
+                                return (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => handleAnswer(idx)}
+                                        className={btnClass}
+                                        disabled={showExp}
+                                    >
+                                        <span className="inline-block w-8 font-bold text-gray-400">{String.fromCharCode(65 + idx)}.</span>
+                                        {opt}
+                                        {showExp && idx === currentQ.ans && <i className="fa-solid fa-circle-check text-green-500 float-right mt-1 text-xl"></i>}
+                                        {showExp && idx === selectedOpt && idx !== currentQ.ans && <i className="fa-solid fa-circle-xmark text-red-500 float-right mt-1 text-xl"></i>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {showExp && (
+                            <div className="fade-in bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
+                                <p className="text-yellow-800 font-bold mb-1"><i className="fa-solid fa-lightbulb mr-2"></i>解析</p>
+                                <p className="text-gray-700">{currentQ.exp}</p>
+                            </div>
+                        )}
+
+                        <div className="flex justify-end">
+                            <button 
+                                onClick={nextQuestion}
+                                disabled={!showExp}
+                                className={`font-bold py-3 px-8 rounded-full transition shadow ${showExp ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                                {qIndex === quizQuestions.length - 1 ? '看成績' : '下一題'} <i className="fa-solid fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('learning');
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+                    
+                    <main className="flex-grow max-w-6xl w-full mx-auto p-4 md:p-8">
+                        {activeTab === 'learning' ? <LearningInterface /> : <QuizInterface />}
+                    </main>
+
+                    <footer className="bg-gray-800 text-gray-400 py-6 text-center">
+                        <p>© 2026 Interactive English Learning - L3 Our Food Smells Good</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
