@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>L3 Our Food Smells Good - Interactive English Learning</title>
-    <!-- 升級 Babel 至 @babel/standalone 以支援現代 JavaScript 語法 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
         body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; background-color: #FFF8E7; }
@@ -24,48 +22,13 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #F87171; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #EF4444; }
-
-        /* Status Dot Animation */
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .dot-connected { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
-        .dot-connecting { background-color: #ef4444; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
-
-    <!-- 透過獨立的 Module Script 載入 Firebase，避免 Babel 解析問題 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // 將 Firebase 模組掛載到全域變數供 React 元件使用
-        window.firebaseModules = {
-            initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion,
-            getAuth, signInAnonymously, onAuthStateChanged
-        };
-    </script>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-
-        // --- Firebase Constants & Config ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAxQFt76ZPXE7d0i1XeNZ1yiiD2WYNIfHs",
-            authDomain: "chinese-learning-47f4d.firebaseapp.com",
-            projectId: "chinese-learning-47f4d",
-            storageBucket: "chinese-learning-47f4d.firebasestorage.app",
-            messagingSenderId: "76289812052",
-            appId: "1:76289812052:web:898384a916f9f341f62fc1"
-        };
-        const ORIGINAL_PREFIX = 'Chinese4-L4_'; 
-        const COLLECTION_NAME = 'Chinese4-L4'; 
-        const DOC_GLOBAL = 'Global_Users';      
-        
-        let db = null;
-        let auth = null;
 
         // --- Data Definitions ---
 
@@ -229,6 +192,9 @@
             }
         ];
 
+        // --- 80 High Difficulty Questions (Programmatically generated to meet the exact request) ---
+        // Questions cover: 1-20 Vocab, 21-40 Linking Verbs, 41-60 Causative Verbs & Idioms, 61-80 Reading/Translation/Advanced
+        
         const generateQuestions = () => {
             const q = [];
             // 1-20 Vocab & Phrasal Verbs
@@ -500,49 +466,21 @@
         };
 
         // Quiz Interface
-        const QuizInterface = ({ currentUser, isFirebaseReady }) => {
+        const QuizInterface = () => {
             const [qIndex, setQIndex] = useState(0);
             const [score, setScore] = useState(0);
             const [showExp, setShowExp] = useState(false);
             const [selectedOpt, setSelectedOpt] = useState(null);
             const [isFinished, setIsFinished] = useState(false);
             const [wrongAnswers, setWrongAnswers] = useState([]);
-            const [userAnswers, setUserAnswers] = useState(new Array(quizQuestions.length).fill(null));
 
             const currentQ = quizQuestions[qIndex];
-
-            useEffect(() => {
-                // 當測驗結束時，將紀錄存回 Firebase
-                if (isFinished && currentUser && isFirebaseReady && window.fbHelpers) {
-                    const saveRecord = async () => {
-                        try {
-                            const { doc, setDoc } = window.fbHelpers;
-                            const recordId = `record_${Date.now()}`;
-                            const recordRef = doc(db, COLLECTION_NAME, currentUser.uid, 'records', recordId);
-                            await setDoc(recordRef, {
-                                score,
-                                total: quizQuestions.length,
-                                answers: userAnswers,
-                                timestamp: new Date().toISOString()
-                            });
-                        } catch (e) {
-                            console.error("儲存測驗紀錄失敗:", e);
-                        }
-                    };
-                    saveRecord();
-                }
-            }, [isFinished]);
 
             const handleAnswer = (optIndex) => {
                 if (showExp) return; // Prevent multiple clicks
                 setSelectedOpt(optIndex);
                 setShowExp(true);
                 
-                // 記錄使用者的選擇
-                const newAnswers = [...userAnswers];
-                newAnswers[qIndex] = optIndex;
-                setUserAnswers(newAnswers);
-
                 if (optIndex === currentQ.ans) {
                     setScore(score + 1);
                 } else {
@@ -567,13 +505,12 @@
                 setSelectedOpt(null);
                 setIsFinished(false);
                 setWrongAnswers([]);
-                setUserAnswers(new Array(quizQuestions.length).fill(null));
             };
 
             if (isFinished) {
                 const passRate = Math.round((score / quizQuestions.length) * 100);
                 return (
-                    <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-xl p-8 text-center fade-in">
+                    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl p-8 text-center fade-in">
                         <h2 className="text-4xl font-extrabold text-gray-800 mb-4">測驗結束！</h2>
                         <div className="w-48 h-48 mx-auto rounded-full border-8 border-gray-100 flex items-center justify-center relative mb-6">
                             <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90">
@@ -595,62 +532,21 @@
                             <i className="fa-solid fa-rotate-right mr-2"></i> 再挑戰一次
                         </button>
 
-                        {/* 全部作答總覽表 */}
-                        <div className="text-left mt-8">
-                            <h3 className="text-2xl font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">
-                                <i className="fa-solid fa-list-check mr-2 text-blue-500"></i>作答總覽表
-                            </h3>
-                            <div className="overflow-x-auto rounded-lg shadow border border-gray-200">
-                                <table className="w-full text-left border-collapse min-w-[900px]">
-                                    <thead>
-                                        <tr className="bg-gray-100 border-b-2 border-gray-300">
-                                            <th className="p-3 text-center w-16 text-gray-600">題號</th>
-                                            <th className="p-3 text-gray-600 w-1/2">題目與選項</th>
-                                            <th className="p-3 text-center w-40 text-gray-600">你的答案</th>
-                                            <th className="p-3 text-center w-40 text-gray-600">正確答案</th>
-                                            <th className="p-3 text-center w-20 text-gray-600">結果</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white">
-                                        {quizQuestions.map((q, idx) => {
-                                            const isCorrect = userAnswers[idx] === q.ans;
-                                            const isSkipped = userAnswers[idx] === null;
-                                            return (
-                                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                                                    <td className="p-3 text-center font-bold text-gray-600 text-lg">{idx + 1}</td>
-                                                    <td className="p-3">
-                                                        <p className="font-bold text-gray-800 mb-3 text-lg leading-relaxed">{q.q}</p>
-                                                        <div className="text-sm space-y-2 text-gray-600">
-                                                            {q.options.map((opt, i) => (
-                                                                <p key={i} className={`p-1 ${i === q.ans ? 'text-green-700 font-bold bg-green-100 rounded inline-block' : ''}`}>
-                                                                    {String.fromCharCode(65 + i)}. {opt}
-                                                                </p>
-                                                            ))}
-                                                        </div>
-                                                        {(!isCorrect && !isSkipped) && (
-                                                            <div className="mt-3 text-sm bg-yellow-50 text-yellow-800 p-3 rounded-lg border border-yellow-200 shadow-sm">
-                                                                <i className="fa-solid fa-lightbulb text-yellow-500 mr-2"></i><strong>解析:</strong> {q.exp}
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                    <td className={`p-3 text-center font-bold text-base ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
-                                                        {isSkipped ? '-' : `${String.fromCharCode(65 + userAnswers[idx])}. ${q.options[userAnswers[idx]]}`}
-                                                    </td>
-                                                    <td className="p-3 text-center font-bold text-green-600 text-base">
-                                                        {String.fromCharCode(65 + q.ans)}. {q.options[q.ans]}
-                                                    </td>
-                                                    <td className="p-3 text-center">
-                                                        {isCorrect 
-                                                            ? <i className="fa-solid fa-check-circle text-green-500 text-3xl drop-shadow-sm"></i>
-                                                            : <i className="fa-solid fa-times-circle text-red-500 text-3xl drop-shadow-sm"></i>}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                        {wrongAnswers.length > 0 && (
+                            <div className="text-left mt-8">
+                                <h3 className="text-2xl font-bold text-red-600 border-b-2 border-red-200 pb-2 mb-4"><i className="fa-solid fa-triangle-exclamation mr-2"></i>錯題回顧</h3>
+                                <div className="space-y-4">
+                                    {wrongAnswers.map((wq, idx) => (
+                                        <div key={idx} className="bg-red-50 p-4 rounded-lg border border-red-100">
+                                            <p className="font-bold text-gray-800 mb-2">{wq.q}</p>
+                                            <p className="text-red-500"><i className="fa-solid fa-xmark mr-1"></i>你的答案: {wq.userAns}</p>
+                                            <p className="text-green-600"><i className="fa-solid fa-check mr-1"></i>正確答案: {wq.options[wq.ans]}</p>
+                                            <p className="text-gray-600 mt-2 text-sm bg-white p-2 rounded"><i className="fa-solid fa-lightbulb text-yellow-500 mr-1"></i>解析: {wq.exp}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 );
             }
@@ -721,205 +617,18 @@
             );
         };
 
-        // StatusBar Component
-        const StatusBar = ({ isFirebaseReady, currentUser }) => (
-            <div className="fixed bottom-4 right-4 flex flex-col items-end gap-2 z-50 fade-in pointer-events-none">
-                {currentUser && (
-                    <div className="bg-white/90 shadow rounded-full px-4 py-2 text-sm font-bold text-gray-700 border border-gray-200 backdrop-blur pointer-events-auto">
-                        <i className="fa-solid fa-user text-red-500 mr-2"></i>{currentUser.name}
-                    </div>
-                )}
-                {/* Firebase 連線狀態指示燈 */}
-                <div id="firebase-status" className="flex items-center gap-3 px-4 py-2 bg-white/90 rounded-full shadow border border-gray-200 text-sm backdrop-blur pointer-events-auto">
-                    <div id="status-dot" className={`status-dot ${isFirebaseReady ? 'dot-connected' : 'dot-connecting'}`}></div>
-                    <span id="status-text" className="font-bold text-gray-600 tracking-wide">{isFirebaseReady ? '連線成功' : '系統連線中...'}</span>
-                </div>
-            </div>
-        );
-
-        // Login Component
-        const LoginView = ({ onLogin, isFirebaseReady }) => {
-            const [name, setName] = useState('');
-            const [isLoading, setIsLoading] = useState(false);
-            const [recentUsers, setRecentUsers] = useState([]);
-
-            useEffect(() => {
-                if (!isFirebaseReady) return;
-                const fetchUsers = async () => {
-                    try {
-                        const { doc, getDoc } = window.fbHelpers;
-                        const docSnap = await getDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL));
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (data.users && Array.isArray(data.users)) {
-                                // 取出所有名稱，並去重複。將最新的紀錄顯示在最前面
-                                const names = data.users.map(u => typeof u === 'string' ? u : u.name).filter(Boolean);
-                                const uniqueNames = [...new Set(names)].reverse();
-                                setRecentUsers(uniqueNames);
-                            }
-                        }
-                    } catch (e) {
-                        console.error("無法取得近期登入名單:", e);
-                    }
-                };
-                fetchUsers();
-            }, [isFirebaseReady]);
-
-            const handleLogin = async (loginName) => {
-                if (!isFirebaseReady) return alert('系統連線中，請稍候...');
-                if (!loginName.trim()) return alert('請輸入您的姓名');
-                setIsLoading(true);
-                await onLogin(loginName);
-                setIsLoading(false);
-            };
-
-            return (
-                <div className="flex flex-col items-center justify-center py-20 fade-in">
-                    <div className="bg-white p-10 rounded-3xl shadow-2xl border border-gray-100 w-full max-w-md text-center transform transition hover:-translate-y-1">
-                        <div className="text-6xl text-red-500 mb-6 drop-shadow-md">
-                            <i className="fa-solid fa-burger"></i>
-                        </div>
-                        <h2 className="text-3xl font-extrabold text-gray-800 mb-3 tracking-wide">L3 學習總部</h2>
-                        <p className="text-gray-500 mb-8 font-medium">登入以自動儲存您的學習進度與測驗紀錄</p>
-                        
-                        <input 
-                            type="text" 
-                            placeholder="請輸入姓名" 
-                            className="w-full px-5 py-4 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:ring-4 focus:ring-red-100 focus:outline-none mb-6 text-lg font-bold text-center transition shadow-inner"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleLogin(name)}
-                        />
-                        
-                        <div className="space-y-4">
-                            <button 
-                                onClick={() => handleLogin(name)}
-                                disabled={isLoading || !isFirebaseReady || !name.trim()}
-                                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition text-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                                {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : '輸入姓名登入'}
-                            </button>
-                            
-                            <div className="relative flex items-center py-2">
-                                <div className="flex-grow border-t border-gray-200"></div>
-                                <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-bold">快速登入</span>
-                                <div className="flex-grow border-t border-gray-200"></div>
-                            </div>
-                            
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 max-h-48 overflow-y-auto">
-                                {recentUsers.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2 justify-center">
-                                        {recentUsers.map((uName, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => handleLogin(uName)}
-                                                disabled={isLoading || !isFirebaseReady}
-                                                className="bg-white border border-gray-200 hover:border-red-400 hover:text-red-500 text-gray-700 px-4 py-2 rounded-full font-bold shadow-sm transition text-sm disabled:opacity-50"
-                                            >
-                                                <i className="fa-solid fa-user mr-2 text-gray-400"></i>{uName}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500 font-medium">尚無近期登入紀錄</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
         const App = () => {
-            const [activeTab, setActiveTab] = useState('login'); // 'login', 'learning', 'quiz'
-            const [isFirebaseReady, setIsFirebaseReady] = useState(false);
-            const [currentUser, setCurrentUser] = useState(null);
-
-            useEffect(() => {
-                let unsubscribeAuth = null;
-                const initFirebase = () => {
-                    // 等待模組掛載到全域變數後再初始化
-                    if (!window.firebaseModules) {
-                        setTimeout(initFirebase, 100);
-                        return;
-                    }
-                    try {
-                        const { initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion, getAuth, signInAnonymously, onAuthStateChanged } = window.firebaseModules;
-
-                        // 初始化 Firebase
-                        const app = initializeApp(firebaseConfig);
-                        db = getFirestore(app);
-                        auth = getAuth(app);
-                        
-                        // 掛載常用功能供其他元件使用
-                        window.fbHelpers = { doc, setDoc, getDoc, arrayUnion }; 
-                        setIsFirebaseReady(true);
-
-                        // 登入狀態監聽
-                        unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-                            if (user) {
-                                try {
-                                    const docSnap = await getDoc(doc(db, COLLECTION_NAME, user.uid));
-                                    if (docSnap.exists()) {
-                                        setCurrentUser({ uid: user.uid, name: docSnap.data().name });
-                                        setActiveTab('learning'); // 已經有紀錄的用戶直接進入學習介面
-                                    }
-                                } catch (err) {
-                                    console.error("讀取使用者資料錯誤:", err);
-                                }
-                            }
-                        });
-                    } catch (e) {
-                        console.error("Firebase 初始化失敗:", e);
-                    }
-                };
-                initFirebase();
-                return () => { if (unsubscribeAuth) unsubscribeAuth(); };
-            }, []);
-
-            const handleLogin = async (loginName) => {
-                try {
-                    const { signInAnonymously } = window.firebaseModules;
-                    const { doc, setDoc, arrayUnion } = window.fbHelpers;
-                    
-                    const userCredential = await signInAnonymously(auth);
-                    const user = userCredential.user;
-
-                    const userData = {
-                        uid: user.uid,
-                        name: loginName,
-                        lastLogin: new Date().toISOString()
-                    };
-
-                    // 1. 儲存至使用者專屬文件
-                    await setDoc(doc(db, COLLECTION_NAME, user.uid), userData, { merge: true });
-                    
-                    // 2. 更新至 Global_Users 清單
-                    await setDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL), {
-                        users: arrayUnion({ uid: user.uid, name: loginName, time: new Date().toISOString() })
-                    }, { merge: true });
-
-                    setCurrentUser(userData);
-                    setActiveTab('learning');
-                } catch (e) {
-                    console.error("登入失敗:", e);
-                    alert("登入失敗，請檢查網路連線後重試");
-                }
-            };
+            const [activeTab, setActiveTab] = useState('learning');
 
             return (
-                <div className="min-h-screen flex flex-col relative pb-16">
-                    {activeTab !== 'login' && <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />}
+                <div className="min-h-screen flex flex-col">
+                    <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
                     
-                    <main className="flex-grow max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10">
-                        {activeTab === 'login' && <LoginView onLogin={handleLogin} isFirebaseReady={isFirebaseReady} />}
-                        {activeTab === 'learning' && <LearningInterface />}
-                        {activeTab === 'quiz' && <QuizInterface currentUser={currentUser} isFirebaseReady={isFirebaseReady} />}
+                    <main className="flex-grow max-w-6xl w-full mx-auto p-4 md:p-8">
+                        {activeTab === 'learning' ? <LearningInterface /> : <QuizInterface />}
                     </main>
 
-                    {/* 常駐的右下角連線狀態 */}
-                    <StatusBar isFirebaseReady={isFirebaseReady} currentUser={currentUser} />
-
-                    <footer className="bg-gray-800 text-gray-400 py-6 text-center mt-auto relative z-10">
+                    <footer className="bg-gray-800 text-gray-400 py-6 text-center">
                         <p>© 2026 Interactive English Learning - L3 Our Food Smells Good</p>
                     </footer>
                 </div>
