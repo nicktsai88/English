@@ -231,93 +231,117 @@
 
         const generateQuestions = () => {
             const q = [];
+            // 選項完美打散配置 (Q1~Q100，每題正解索引為 (題號-1)%4 )
+            
             // 1-20 Vocab & Phrasal Verbs
             q.push({ q: "1. The sign on the door ____ 'No Eating or Drinking'.", options: ["says", "tells", "speaks", "talks"], ans: 0, exp: "標誌、菜單等「寫著」使用動詞 say。" });
             q.push({ q: "2. The doctor told my dad to lose some ____ because he is too heavy.", options: ["wait", "weight", "weigh", "wheight"], ans: 1, exp: "體重為名詞 weight。" });
             q.push({ q: "3. My stomach is growling. What are we waiting for? Let's ____!", options: ["put on", "stand for", "dig in", "spill the beans"], ans: 2, exp: "dig in 意為「開動、開始吃」。" });
-            q.push({ q: "4. The letters 'VIP' ____ Very Important Person.", options: ["stand for", "look like", "make up", "worry about"], ans: 0, exp: "stand for 代表 / 是...的縮寫。" });
+            q.push({ q: "4. The letters 'VIP' ____ Very Important Person.", options: ["look like", "make up", "worry about", "stand for"], ans: 3, exp: "stand for 代表 / 是...的縮寫。" });
             q.push({ q: "5. I'd like to place an ____ for three large pizzas and some fried chicken.", options: ["order", "sign", "matter", "oil"], ans: 0, exp: "place an order 下訂單 / 點餐。" });
             q.push({ q: "6. ____ French fries, we also ordered a large vegetable salad.", options: ["Beside", "Besides", "Except", "However"], ans: 1, exp: "besides (除此之外還有)。beside 是在旁邊。" });
-            q.push({ q: "7. The soup has very little ____. Did you forget to put salt in it?", options: ["smell", "taste", "sound", "meal"], ans: 1, exp: "taste 在此作名詞，意為「味道」。" });
-            q.push({ q: "8. Eating too much fast food will make you ____ weight easily.", options: ["put on", "take off", "get up", "dig in"], ans: 0, exp: "put on weight 增加體重。" });
-            q.push({ q: "9. This restaurant is very ____ to kids. They even have a playground inside.", options: ["friend", "friendly", "friendship", "friends"], ans: 1, exp: "friendly 友善的 (形容詞)。" });
-            q.push({ q: "10. Don't worry about the small details. They don't ____ at all.", options: ["stand", "notice", "matter", "probably"], ans: 2, exp: "matter 作動詞，意為「重要、有關係」。" });
-            q.push({ q: "11. The ____ outside the store is so bright that everyone can see it at night.", options: ["sign", "bun", "toast", "pork"], ans: 0, exp: "sign 招牌 / 標誌。" });
-            q.push({ q: "12. I'll have a hamburger and some ____, please. Oh, and a cup of black coffee.", options: ["French fries", "France fries", "French fry", "France fry"], ans: 0, exp: "薯條為 French fries (複數)。" });
-            q.push({ q: "13. Some people don't eat ____ because it's against their religion.", options: ["salad", "vegetables", "pork", "toast"], ans: 2, exp: "pork 豬肉。" });
-            q.push({ q: "14. Mom, can I have a ____ of your sandwich? I am so hungry.", options: ["bite", "bit", "sign", "meal"], ans: 0, exp: "have a bite 咬一口。" });
-            q.push({ q: "15. I didn't ____ that Kevin cut his hair until he told me.", options: ["invite", "taste", "smell", "notice"], ans: 3, exp: "notice 注意到。" });
-            q.push({ q: "16. We decided to take Mary out for a ____ to celebrate her birthday.", options: ["meal", "meat", "bun", "oil"], ans: 0, exp: "take sb out for a meal 帶某人出去吃大餐。" });
+            q.push({ q: "7. The soup has very little ____. Did you forget to put salt in it?", options: ["smell", "sound", "taste", "meal"], ans: 2, exp: "taste 在此作名詞，意為「味道」。" });
+            q.push({ q: "8. Eating too much fast food will make you ____ weight easily.", options: ["take off", "get up", "dig in", "put on"], ans: 3, exp: "put on weight 增加體重。" });
+            q.push({ q: "9. This restaurant is very ____ to kids. They even have a playground inside.", options: ["friendly", "friend", "friendship", "friends"], ans: 0, exp: "friendly 友善的 (形容詞)。" });
+            q.push({ q: "10. Don't worry about the small details. They don't ____ at all.", options: ["stand", "matter", "notice", "probably"], ans: 1, exp: "matter 作動詞，意為「重要、有關係」。" });
+            q.push({ q: "11. The ____ outside the store is so bright that everyone can see it at night.", options: ["bun", "toast", "sign", "pork"], ans: 2, exp: "sign 招牌 / 標誌。" });
+            q.push({ q: "12. I'll have a hamburger and some ____, please. Oh, and a cup of black coffee.", options: ["France fries", "French fry", "France fry", "French fries"], ans: 3, exp: "薯條為 French fries (複數)。" });
+            q.push({ q: "13. Some people don't eat ____ because it's against their religion.", options: ["pork", "vegetables", "salad", "toast"], ans: 0, exp: "pork 豬肉。" });
+            q.push({ q: "14. Mom, can I have a ____ of your sandwich? I am so hungry.", options: ["bit", "bite", "sign", "meal"], ans: 1, exp: "have a bite 咬一口。" });
+            q.push({ q: "15. I didn't ____ that Kevin cut his hair until he told me.", options: ["invite", "taste", "notice", "smell"], ans: 2, exp: "notice 注意到。" });
+            q.push({ q: "16. We decided to take Mary out for a ____ to celebrate her birthday.", options: ["meat", "bun", "oil", "meal"], ans: 3, exp: "take sb out for a meal 帶某人出去吃大餐。" });
             q.push({ q: "17. The bread smells ____. Did you bake it yourself?", options: ["good", "well", "like good", "to be good"], ans: 0, exp: "smell (聞起來) 為連綴動詞，後接形容詞 good。" });
-            q.push({ q: "18. Who did you ____ to your party this weekend?", options: ["invite", "notice", "order", "matter"], ans: 0, exp: "invite 邀請。" });
-            q.push({ q: "19. The weather will ____ rain tomorrow, so bring an umbrella.", options: ["possible", "probably", "friendly", "soon"], ans: 1, exp: "probably 大概 / 也許 (副詞)。" });
-            q.push({ q: "20. The ____ fell in 1989, changing the history of Germany.", options: ["Sign", "Wall", "Meal", "Order"], ans: 1, exp: "the Berlin Wall 柏林圍牆。" });
+            q.push({ q: "18. Who did you ____ to your party this weekend?", options: ["notice", "invite", "order", "matter"], ans: 1, exp: "invite 邀請。" });
+            q.push({ q: "19. The weather will ____ rain tomorrow, so bring an umbrella.", options: ["possible", "friendly", "probably", "soon"], ans: 2, exp: "probably 大概 / 也許 (副詞)。" });
+            q.push({ q: "20. The ____ fell in 1989, changing the history of Germany.", options: ["Sign", "Meal", "Order", "Wall"], ans: 3, exp: "the Berlin Wall 柏林圍牆。" });
 
             // 21-40 Linking Verbs
             q.push({ q: "21. A: ____ does the soup taste? B: It tastes a little salty.", options: ["How", "What", "Why", "When"], ans: 0, exp: "詢問「如何」用 How does... taste?" });
             q.push({ q: "22. A: ____ does the cloud look like? B: It looks like a rabbit.", options: ["How", "What", "Which", "Who"], ans: 1, exp: "詢問「像什麼」用 What does... look like?" });
             q.push({ q: "23. The milk tea ____ great. Can I have another cup?", options: ["is tasting", "tasted like", "tastes", "tastes to be"], ans: 2, exp: "連綴動詞通常不用進行式，且直接接形容詞。" });
-            q.push({ q: "24. After a long walk, the kids ____ tired and hungry.", options: ["got", "sounded", "tasted", "smelled"], ans: 0, exp: "get/got + adj 表示「變得」。" });
-            q.push({ q: "25. As time went by, the sky got ____.", options: ["dark and dark", "darker and darker", "more and more dark", "the darkest"], ans: 1, exp: "越來越... : 比較級 and 比較級。" });
-            q.push({ q: "26. The man on the phone sounded ____ your uncle.", options: ["like", "as", "to be", "with"], ans: 0, exp: "sound like + 名詞 (聽起來像)。" });
-            q.push({ q: "27. The music sounds ____. Please turn it off.", options: ["terrible", "terribly", "like terrible", "to be terrible"], ans: 0, exp: "sound 後接形容詞。" });
-            q.push({ q: "28. Fall is here. The leaves are ____ yellow and red.", options: ["getting to", "looking", "turning", "smelling"], ans: 2, exp: "turn 也有「轉變狀態(顏色)」的意思。" });
+            q.push({ q: "24. After a long walk, the kids ____ tired and hungry.", options: ["sounded", "tasted", "smelled", "got"], ans: 3, exp: "get/got + adj 表示「變得」。" });
+            q.push({ q: "25. As time went by, the sky got ____.", options: ["darker and darker", "dark and dark", "more and more dark", "the darkest"], ans: 0, exp: "越來越... : 比較級 and 比較級。" });
+            q.push({ q: "26. The man on the phone sounded ____ your uncle.", options: ["as", "like", "to be", "with"], ans: 1, exp: "sound like + 名詞 (聽起來像)。" });
+            q.push({ q: "27. The music sounds ____. Please turn it off.", options: ["terribly", "like terrible", "terrible", "to be terrible"], ans: 2, exp: "sound 後接形容詞。" });
+            q.push({ q: "28. Fall is here. The leaves are ____ yellow and red.", options: ["getting to", "looking", "smelling", "turning"], ans: 3, exp: "turn 也有「轉變狀態(顏色)」的意思。" });
             q.push({ q: "29. My dad ____ angry when he saw my math test score.", options: ["became", "looked like", "felt like", "sounded like"], ans: 0, exp: "become + adj (變得)。" });
-            q.push({ q: "30. Does this jacket ____ good on me?", options: ["look", "see", "watch", "make"], ans: 0, exp: "look good on sb (某人穿起來好看)。" });
-            q.push({ q: "31. The fish ____ bad. Don't eat it.", options: ["smells", "smells like", "is smelling", "is smelled"], ans: 0, exp: "smell bad (聞起來壞掉了)。不用進行式。" });
-            q.push({ q: "32. The actress is getting ____ beautiful.", options: ["more and more", "much and much", "most and most", "beautifuler and beautifuler"], ans: 0, exp: "多音節形容詞的越來越...：more and more + adj。" });
-            q.push({ q: "33. Who ____ she look like? Her mom or her dad?", options: ["is", "does", "do", "has"], ans: 1, exp: "look 在此為一般動詞，需助動詞 does。" });
-            q.push({ q: "34. The cake ____ sweet. I like it very much.", options: ["tastes", "tastes like", "is tasted", "tasting"], ans: 0, exp: "連綴動詞 taste + adj。" });
-            q.push({ q: "35. It ____ like it's going to rain. Look at those dark clouds.", options: ["looks", "sees", "watches", "gets"], ans: 0, exp: "It looks like + 子句 (看起來像...)" });
-            q.push({ q: "36. I don't feel ____ eating anything right now.", options: ["like", "as", "to", "X"], ans: 0, exp: "feel like + V-ing (想要...)" });
-            q.push({ q: "37. He looks ____ a friendly person.", options: ["X", "like", "as", "to be"], ans: 1, exp: "look like + 名詞片語。" });
-            q.push({ q: "38. This bed feels very ____.", options: ["comfortable", "comfortably", "comfort", "like comfortable"], ans: 0, exp: "feel + 形容詞。" });
-            q.push({ q: "39. The idea sounds ____ to me.", options: ["interesting", "interestingly", "interested", "interest"], ans: 0, exp: "idea 令人覺得有趣的用 interesting。" });
-            q.push({ q: "40. The dish tasted ____ than it looked.", options: ["well", "better", "best", "good"], ans: 1, exp: "比較級：嘗起來比看起來「更好」(better)。" });
+            q.push({ q: "30. Does this jacket ____ good on me?", options: ["see", "look", "watch", "make"], ans: 1, exp: "look good on sb (某人穿起來好看)。" });
+            q.push({ q: "31. The fish ____ bad. Don't eat it.", options: ["smells like", "is smelling", "smells", "is smelled"], ans: 2, exp: "smell bad (聞起來壞掉了)。不用進行式。" });
+            q.push({ q: "32. The actress is getting ____ beautiful.", options: ["much and much", "most and most", "beautifuler and beautifuler", "more and more"], ans: 3, exp: "多音節形容詞的越來越...：more and more + adj。" });
+            q.push({ q: "33. Who ____ she look like? Her mom or her dad?", options: ["does", "is", "do", "has"], ans: 0, exp: "look 在此為一般動詞，需助動詞 does。" });
+            q.push({ q: "34. The cake ____ sweet. I like it very much.", options: ["tastes like", "tastes", "is tasted", "tasting"], ans: 1, exp: "連綴動詞 taste + adj。" });
+            q.push({ q: "35. It ____ like it's going to rain. Look at those dark clouds.", options: ["sees", "watches", "looks", "gets"], ans: 2, exp: "It looks like + 子句 (看起來像...)" });
+            q.push({ q: "36. I don't feel ____ eating anything right now.", options: ["as", "to", "X", "like"], ans: 3, exp: "feel like + V-ing (想要...)" });
+            q.push({ q: "37. He looks ____ a friendly person.", options: ["like", "X", "as", "to be"], ans: 0, exp: "look like + 名詞片語。" });
+            q.push({ q: "38. This bed feels very ____.", options: ["comfortably", "comfortable", "comfort", "like comfortable"], ans: 1, exp: "feel + 形容詞。" });
+            q.push({ q: "39. The idea sounds ____ to me.", options: ["interestingly", "interested", "interesting", "interest"], ans: 2, exp: "idea 令人覺得有趣的用 interesting。" });
+            q.push({ q: "40. The dish tasted ____ than it looked.", options: ["well", "best", "good", "better"], ans: 3, exp: "比較級：嘗起來比看起來「更好」(better)。" });
 
             // 41-60 Causative Verbs & Idioms
             q.push({ q: "41. My mom made me ____ my room before I could go out.", options: ["clean", "to clean", "cleaned", "cleaning"], ans: 0, exp: "make + O + VR (原形動詞)。" });
-            q.push({ q: "42. The teacher had the students ____ down the rules.", options: ["to write", "wrote", "write", "writing"], ans: 2, exp: "have + O + VR。" });
-            q.push({ q: "43. Will your parents let you ____ to the party tonight?", options: ["go", "to go", "going", "went"], ans: 0, exp: "let + O + VR。" });
-            q.push({ q: "44. The sad movie made everyone ____.", options: ["cry", "to cry", "crying", "cried"], ans: 0, exp: "make + O + VR。" });
-            q.push({ q: "45. Please help me ____ these heavy boxes.", options: ["carried", "carrying", "carry", "carries"], ans: 2, exp: "help + O + (to) VR。此處 carry 為正解。" });
-            q.push({ q: "46. His words made me very ____.", options: ["angry", "angrily", "to anger", "angered"], ans: 0, exp: "make + O + 形容詞。" });
-            q.push({ q: "47. I didn't have my brother ____ the car yesterday.", options: ["wash", "to wash", "washed", "washing"], ans: 0, exp: "have + O + VR。否定句型不變。" });
-            q.push({ q: "48. Don't let the cat ____ out of the house.", options: ["run", "to run", "running", "ran"], ans: 0, exp: "let + O + VR。" });
+            q.push({ q: "42. The teacher had the students ____ down the rules.", options: ["to write", "write", "wrote", "writing"], ans: 1, exp: "have + O + VR。" });
+            q.push({ q: "43. Will your parents let you ____ to the party tonight?", options: ["to go", "going", "go", "went"], ans: 2, exp: "let + O + VR。" });
+            q.push({ q: "44. The sad movie made everyone ____.", options: ["to cry", "crying", "cried", "cry"], ans: 3, exp: "make + O + VR。" });
+            q.push({ q: "45. Please help me ____ these heavy boxes.", options: ["carry", "carried", "carrying", "carries"], ans: 0, exp: "help + O + (to) VR。此處 carry 為正解。" });
+            q.push({ q: "46. His words made me very ____.", options: ["angrily", "angry", "to anger", "angered"], ans: 1, exp: "make + O + 形容詞。" });
+            q.push({ q: "47. I didn't have my brother ____ the car yesterday.", options: ["to wash", "washed", "wash", "washing"], ans: 2, exp: "have + O + VR。否定句型不變。" });
+            q.push({ q: "48. Don't let the cat ____ out of the house.", options: ["to run", "running", "ran", "run"], ans: 3, exp: "let + O + VR。" });
             q.push({ q: "49. The boss ____ the workers work for 12 hours a day.", options: ["makes", "asks", "tells", "wants"], ans: 0, exp: "後接 VR (work)，只能選使役動詞 makes。其餘須加 to。" });
-            q.push({ q: "50. Can you help me ____ my English homework?", options: ["with", "to", "for", "on"], ans: 0, exp: "help sb with Noun。" });
-            q.push({ q: "51. I'm planning a surprise party. Don't ____!", options: ["spill the beans", "stand for", "dig in", "take a look"], ans: 0, exp: "spill the beans 洩漏秘密。" });
-            q.push({ q: "52. Hurry up, ____ you will be late for the movie.", options: ["or", "and", "so", "but"], ans: 0, exp: "祈使句 + or + 句子 (否則...)。" });
+            q.push({ q: "50. Can you help me ____ my English homework?", options: ["to", "with", "for", "on"], ans: 1, exp: "help sb with Noun。" });
+            q.push({ q: "51. I'm planning a surprise party. Don't ____!", options: ["stand for", "dig in", "spill the beans", "take a look"], ans: 2, exp: "spill the beans 洩漏秘密。" });
+            q.push({ q: "52. Hurry up, ____ you will be late for the movie.", options: ["and", "so", "but", "or"], ans: 3, exp: "祈使句 + or + 句子 (否則...)。" });
             q.push({ q: "53. What are you waiting ____? Let's go!", options: ["for", "to", "at", "about"], ans: 0, exp: "wait for (等待)。What are you waiting for? (還在等什麼)" });
-            q.push({ q: "54. Let me take a ____ at the map. I think we are lost.", options: ["look", "see", "watch", "view"], ans: 0, exp: "take a look at... (看一看)。" });
-            q.push({ q: "55. They took many photos ____ the beautiful castle.", options: ["of", "for", "with", "about"], ans: 0, exp: "take a photo of... (拍...的照片)。" });
-            q.push({ q: "56. I want to take a photo ____ the famous singer.", options: ["with", "of", "to", "for"], ans: 0, exp: "和某人合照用 take a photo with sb。" });
+            q.push({ q: "54. Let me take a ____ at the map. I think we are lost.", options: ["see", "look", "watch", "view"], ans: 1, exp: "take a look at... (看一看)。" });
+            q.push({ q: "55. They took many photos ____ the beautiful castle.", options: ["for", "with", "of", "about"], ans: 2, exp: "take a photo of... (拍...的照片)。" });
+            q.push({ q: "56. I want to take a photo ____ the famous singer.", options: ["of", "to", "for", "with"], ans: 3, exp: "和某人合照用 take a photo with sb。" });
             q.push({ q: "57. The news made her ____ a successful business woman.", options: ["become", "to become", "becoming", "became"], ans: 0, exp: "make + O + VR。" });
-            q.push({ q: "58. Does your mom make you ____ up early on weekends?", options: ["get", "to get", "got", "getting"], ans: 0, exp: "make + O + VR。" });
-            q.push({ q: "59. Let's go out for a meal tonight, ____ we?", options: ["shall", "will", "do", "don't"], ans: 0, exp: "Let's... 的附加問句為 shall we? (進階文法補充)" });
-            q.push({ q: "60. She asked me ____ the window.", options: ["to open", "open", "opening", "opened"], ans: 0, exp: "ask 不是使役動詞，需用 ask sb to V。" });
+            q.push({ q: "58. Does your mom make you ____ up early on weekends?", options: ["to get", "get", "got", "getting"], ans: 1, exp: "make + O + VR。" });
+            q.push({ q: "59. Let's go out for a meal tonight, ____ we?", options: ["will", "do", "shall", "don't"], ans: 2, exp: "Let's... 的附加問句為 shall we? (進階文法補充)" });
+            q.push({ q: "60. She asked me ____ the window.", options: ["open", "opening", "opened", "to open"], ans: 3, exp: "ask 不是使役動詞，需用 ask sb to V。" });
 
             // 61-80 Reading, Translation & Mixed Grammar (High Difficulty)
             q.push({ q: "61. Many fast food restaurants use red in their signs because red ____.", options: ["invites people in", "makes people sleepy", "stands for nature", "looks like tomatoes"], ans: 0, exp: "課文提到 red invites people into the stores." });
-            q.push({ q: "62. What does the color green stand for in the restaurant business?", options: ["Nature", "Money", "Hunger", "Danger"], ans: 0, exp: "綠色代表大自然 (nature)，讓人感到舒適。" });
-            q.push({ q: "63. 'Some... Other... Still other...' is used to talk about ____ groups.", options: ["three", "two", "four", "one"], ans: 0, exp: "這三個字詞用來分列「三種」不同的群體。" });
-            q.push({ q: "64. 'Because of' must be followed by a ____.", options: ["noun/V-ing", "complete sentence", "verb", "adjective"], ans: 0, exp: "because of 是介系詞，後接名詞或動名詞。" });
+            q.push({ q: "62. What does the color green stand for in the restaurant business?", options: ["Money", "Nature", "Hunger", "Danger"], ans: 1, exp: "綠色代表大自然 (nature)，讓人感到舒適。" });
+            q.push({ q: "63. 'Some... Other... Still other...' is used to talk about ____ groups.", options: ["one", "two", "three", "four"], ans: 2, exp: "這三個字詞用來分列「三種」不同的群體。" });
+            q.push({ q: "64. 'Because of' must be followed by a ____.", options: ["complete sentence", "verb", "adjective", "noun/V-ing"], ans: 3, exp: "because of 是介系詞，後接名詞或動名詞。" });
             q.push({ q: "65. Yellow and red make people feel hungry, ____ they probably go in for a bite.", options: ["so", "because", "but", "or"], ans: 0, exp: "前面是原因，後面是結果，用 so 連接。" });
-            q.push({ q: "66. When Gordon ____ you tomorrow, he will be very happy.", options: ["sees", "will see", "saw", "is seeing"], ans: 0, exp: "在 when 引導的未來時間副詞子句中，用現在式代替未來式。" });
-            q.push({ q: "67. We use ____ oil, salt, and sugar to make our food healthier.", options: ["less", "fewer", "little", "few"], ans: 0, exp: "oil, salt, sugar 為不可數，比較級用 less。" });
-            q.push({ q: "68. Which sentence is grammatically INCORRECT?", options: ["He had me to clean the room.", "He made me clean the room.", "He let me clean the room.", "He helped me clean the room."], ans: 0, exp: "have 為使役動詞，後接原形，不可加 to。" });
+            q.push({ q: "66. When Gordon ____ you tomorrow, he will be very happy.", options: ["will see", "sees", "saw", "is seeing"], ans: 1, exp: "在 when 引導的未來時間副詞子句中，用現在式代替未來式。" });
+            q.push({ q: "67. We use ____ oil, salt, and sugar to make our food healthier.", options: ["fewer", "little", "less", "few"], ans: 2, exp: "oil, salt, sugar 為不可數，比較級用 less。" });
+            q.push({ q: "68. Which sentence is grammatically INCORRECT?", options: ["He made me clean the room.", "He let me clean the room.", "He helped me clean the room.", "He had me to clean the room."], ans: 3, exp: "have 為使役動詞，後接原形，不可加 to。" });
             q.push({ q: "69. ____ English, I am also good at math.", options: ["Besides", "Beside", "Except", "Behind"], ans: 0, exp: "Besides (除了...之外還有)。" });
-            q.push({ q: "70. It says ____ the bottle to take two pills a day.", options: ["on", "in", "at", "with"], ans: 0, exp: "在瓶子上寫著：say on the bottle。" });
-            q.push({ q: "71. 'What about that one?' In this sentence, 'one' refers to ____.", options: ["a restaurant", "a person", "a meal", "a sign"], ans: 0, exp: "對話中，one 代替前面提到的 restaurant。" });
-            q.push({ q: "72. I don't want to go out ____ the heavy rain.", options: ["because of", "because", "so", "but"], ans: 0, exp: "the heavy rain 是名詞片語，需用 because of。" });
+            q.push({ q: "70. It says ____ the bottle to take two pills a day.", options: ["in", "on", "at", "with"], ans: 1, exp: "在瓶子上寫著：say on the bottle。" });
+            q.push({ q: "71. 'What about that one?' In this sentence, 'one' refers to ____.", options: ["a person", "a meal", "a restaurant", "a sign"], ans: 2, exp: "對話中，one 代替前面提到的 restaurant。" });
+            q.push({ q: "72. I don't want to go out ____ the heavy rain.", options: ["because", "so", "but", "because of"], ans: 3, exp: "the heavy rain 是名詞片語，需用 because of。" });
             q.push({ q: "73. The movie was so boring that it made me ____ asleep.", options: ["fall", "to fall", "fell", "falling"], ans: 0, exp: "make + O + VR (fall asleep)。" });
-            q.push({ q: "74. The soup smells ____, but it tastes ____.", options: ["good; bad", "well; badly", "good; badly", "well; bad"], ans: 0, exp: "連綴動詞前後皆須接形容詞 (good, bad)。" });
-            q.push({ q: "75. 'In the restaurant business, colors really matter.' 'matter' here means ____.", options: ["are important", "are a problem", "are a sign", "are friendly"], ans: 0, exp: "matter 在此為動詞，意為「重要」。" });
-            q.push({ q: "76. Why didn't Bella want to eat at the first restaurant?", options: ["It looked dark outside.", "It was too expensive.", "She didn't like hamburgers.", "It was full of people."], ans: 0, exp: "課文：It looks dark from the outside." });
+            q.push({ q: "74. The soup smells ____, but it tastes ____.", options: ["well; badly", "good; bad", "good; badly", "well; bad"], ans: 1, exp: "連綴動詞前後皆須接形容詞 (good, bad)。" });
+            q.push({ q: "75. 'In the restaurant business, colors really matter.' 'matter' here means ____.", options: ["are a problem", "are a sign", "are important", "are friendly"], ans: 2, exp: "matter 在此為動詞，意為「重要」。" });
+            q.push({ q: "76. Why didn't Bella want to eat at the first restaurant?", options: ["It was too expensive.", "She didn't like hamburgers.", "It was full of people.", "It looked dark outside."], ans: 3, exp: "課文：It looks dark from the outside." });
             q.push({ q: "77. What did Eddie's rice look like in the restaurant?", options: ["Cute pandas", "A dog", "A flower", "A star"], ans: 0, exp: "課文：Your rice looks like cute pandas." });
-            q.push({ q: "78. You'd better ____ the beans, or she will be angry.", options: ["not spill", "not to spill", "spill not", "to not spill"], ans: 0, exp: "had better + not VR (最好不要...)。" });
-            q.push({ q: "79. I saw him ____ the cake just now. It must be him!", options: ["eating", "to eat", "ate", "eaten"], ans: 0, exp: "感官動詞 see + O + V-ing/VR。此處 eating 表進行中。" });
-            q.push({ q: "80. Which of the following is NOT a linking verb?", options: ["enjoy", "taste", "sound", "feel"], ans: 0, exp: "enjoy 是一般動詞，不是連綴動詞。" });
+            q.push({ q: "78. You'd better ____ the beans, or she will be angry.", options: ["not to spill", "not spill", "spill not", "to not spill"], ans: 1, exp: "had better + not VR (最好不要...)。" });
+            q.push({ q: "79. I saw him ____ the cake just now. It must be him!", options: ["to eat", "ate", "eating", "eaten"], ans: 2, exp: "感官動詞 see + O + V-ing/VR。此處 eating 表進行中。" });
+            q.push({ q: "80. Which of the following is NOT a linking verb?", options: ["taste", "sound", "feel", "enjoy"], ans: 3, exp: "enjoy 是一般動詞，不是連綴動詞。" });
+
+            // 81-100 New Expanded Questions
+            q.push({ q: "81. Judy put many pieces of ____ on the pizza.", options: ["cheese", "sound", "wall", "sign"], ans: 0, exp: "cheese 起司，不可數名詞，可用 pieces of 來量化。" });
+            q.push({ q: "82. Do you want your coffee black or ____?", options: ["yellow", "white", "green", "red"], ans: 1, exp: "black coffee 黑咖啡；white coffee 加牛奶的咖啡。" });
+            q.push({ q: "83. I always ____ my dog when I leave him alone.", options: ["take a look", "dig in", "worry about", "stand for"], ans: 2, exp: "worry about 擔心...。" });
+            q.push({ q: "84. The weather is ____ hotter and hotter.", options: ["making", "letting", "having", "getting"], ans: 3, exp: "get + adj 變得...，這裡用進行式 getting 表達「漸漸變得」。" });
+            q.push({ q: "85. My mother had me ____ the dishes after dinner.", options: ["wash", "washed", "to wash", "washing"], ans: 0, exp: "使役動詞 have + O + VR (原形動詞)。" });
+            q.push({ q: "86. What does the green and white wall make Bella think of?", options: ["Pandas", "Healthy meals", "French fries", "Nature"], ans: 1, exp: "課文提到 green and white walls make me think of healthy meals。" });
+            q.push({ q: "87. The meat smells ____. Don't eat it!", options: ["badly", "to be bad", "bad", "like bad"], ans: 2, exp: "連綴動詞 smell 後面接形容詞 bad。" });
+            q.push({ q: "88. The funny joke made everyone ____.", options: ["laughing", "to laugh", "laughed", "laugh"], ans: 3, exp: "使役動詞 make + O + VR (原形動詞)。" });
+            q.push({ q: "89. Yellow makes people feel ____ and red invites people into the stores.", options: ["happy", "comfortable", "hungry", "nature"], ans: 0, exp: "課文提及 yellow makes people feel happy。" });
+            q.push({ q: "90. You should take a photo ____ this in case you forget it.", options: ["for", "of", "with", "about"], ans: 1, exp: "take a photo of... 拍...的照片。" });
+            q.push({ q: "91. 'Which do you like, the pork chop or the chicken cutlet?' 'I like ____.'", options: ["vegetable", "toast", "pork", "salad"], ans: 2, exp: "對應問句的 pork chop，選擇 pork (豬肉)。" });
+            q.push({ q: "92. Fruit and ____ are good for you.", options: ["coffees", "oils", "weights", "vegetables"], ans: 3, exp: "vegetables 蔬菜，做通稱時常以複數出現。" });
+            q.push({ q: "93. How ____ the cake taste?", options: ["does", "do", "is", "are"], ans: 0, exp: "taste 在此為一般動詞，主詞 the cake 為單數，助動詞用 does。" });
+            q.push({ q: "94. Frank helps me ____ the car.", options: ["washed", "wash", "washing", "washes"], ans: 1, exp: "help + O + (to) VR。這裡搭配 wash (原形動詞)。" });
+            q.push({ q: "95. When people see yellow and red, they will become ____.", options: ["happy", "angry", "hungry", "comfortable"], ans: 2, exp: "課文提到 ...they will become hungry and probably go in for a bite。" });
+            q.push({ q: "96. What does the cloud ____?", options: ["look", "like", "looking", "look like"], ans: 3, exp: "look like + 名詞 (看起來像...)。" });
+            q.push({ q: "97. Dad didn't let me ____ his car.", options: ["drive", "to drive", "driving", "drove"], ans: 0, exp: "使役動詞 let + O + VR (原形動詞)。" });
+            q.push({ q: "98. Let me ____ at your phone to find the problem.", options: ["spill the beans", "take a look", "dig in", "stand for"], ans: 1, exp: "take a look 看一看。" });
+            q.push({ q: "99. We need some cooking ____ to fry the eggs.", options: ["cheese", "bread", "oil", "bun"], ans: 2, exp: "cooking oil 食用油。" });
+            q.push({ q: "100. What does the sign ____?", options: ["tell", "speak", "talk", "say"], ans: 3, exp: "標誌、告示「寫著」用動詞 say。" });
 
             return q;
         };
@@ -343,7 +367,7 @@
                             <button 
                                 onClick={() => setActiveTab('quiz')}
                                 className={`pb-1 px-2 transition duration-300 ${activeTab === 'quiz' ? 'tab-active' : 'tab-inactive hover:text-red-400'}`}>
-                                <i className="fa-solid fa-pen-clip mr-2"></i>魔鬼測驗 (80題)
+                                <i className="fa-solid fa-pen-clip mr-2"></i>魔鬼測驗 (100題)
                             </button>
                         </div>
                     </div>
@@ -627,11 +651,10 @@
                                                                 </p>
                                                             ))}
                                                         </div>
-                                                        {(!isCorrect && !isSkipped) && (
-                                                            <div className="mt-3 text-sm bg-yellow-50 text-yellow-800 p-3 rounded-lg border border-yellow-200 shadow-sm">
-                                                                <i className="fa-solid fa-lightbulb text-yellow-500 mr-2"></i><strong>解析:</strong> {q.exp}
-                                                            </div>
-                                                        )}
+                                                        {/* 無論答對答錯，作答總覽表皆會顯示完整解析說明 */}
+                                                        <div className="mt-3 text-sm bg-yellow-50 text-yellow-800 p-3 rounded-lg border border-yellow-200 shadow-sm">
+                                                            <i className="fa-solid fa-lightbulb text-yellow-500 mr-2"></i><strong>解析:</strong> {q.exp}
+                                                        </div>
                                                     </td>
                                                     <td className={`p-3 text-center font-bold text-base ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
                                                         {isSkipped ? '-' : `${String.fromCharCode(65 + userAnswers[idx])}. ${q.options[userAnswers[idx]]}`}
@@ -742,6 +765,7 @@
             const [name, setName] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const [recentUsers, setRecentUsers] = useState([]);
+            const [errorMsg, setErrorMsg] = useState('');
 
             useEffect(() => {
                 if (!isFirebaseReady) return;
@@ -765,11 +789,17 @@
                 fetchUsers();
             }, [isFirebaseReady]);
 
-            const handleLogin = async (loginName) => {
-                if (!isFirebaseReady) return alert('系統連線中，請稍候...');
-                if (!loginName.trim()) return alert('請輸入您的姓名');
+            const handleLoginClick = async (loginName) => {
+                setErrorMsg('');
+                if (!isFirebaseReady) return setErrorMsg('系統連線中，請稍候...');
+                if (!loginName.trim()) return setErrorMsg('請輸入您的姓名');
+                
                 setIsLoading(true);
-                await onLogin(loginName);
+                try {
+                    await onLogin(loginName);
+                } catch(err) {
+                    setErrorMsg("登入失敗，請檢查網路連線後重試");
+                }
                 setIsLoading(false);
             };
 
@@ -782,18 +812,24 @@
                         <h2 className="text-3xl font-extrabold text-gray-800 mb-3 tracking-wide">L3 學習總部</h2>
                         <p className="text-gray-500 mb-8 font-medium">登入以自動儲存您的學習進度與測驗紀錄</p>
                         
+                        {errorMsg && (
+                            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-6 rounded text-left text-sm font-bold shadow-sm">
+                                <i className="fa-solid fa-circle-exclamation mr-2"></i>{errorMsg}
+                            </div>
+                        )}
+                        
                         <input 
                             type="text" 
                             placeholder="請輸入姓名" 
                             className="w-full px-5 py-4 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:ring-4 focus:ring-red-100 focus:outline-none mb-6 text-lg font-bold text-center transition shadow-inner"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleLogin(name)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLoginClick(name)}
                         />
                         
                         <div className="space-y-4">
                             <button 
-                                onClick={() => handleLogin(name)}
+                                onClick={() => handleLoginClick(name)}
                                 disabled={isLoading || !isFirebaseReady || !name.trim()}
                                 className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition text-lg disabled:opacity-50 disabled:cursor-not-allowed">
                                 {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : '輸入姓名登入'}
@@ -811,7 +847,7 @@
                                         {recentUsers.map((uName, idx) => (
                                             <button
                                                 key={idx}
-                                                onClick={() => handleLogin(uName)}
+                                                onClick={() => handleLoginClick(uName)}
                                                 disabled={isLoading || !isFirebaseReady}
                                                 className="bg-white border border-gray-200 hover:border-red-400 hover:text-red-500 text-gray-700 px-4 py-2 rounded-full font-bold shadow-sm transition text-sm disabled:opacity-50"
                                             >
@@ -901,8 +937,8 @@
                     setCurrentUser(userData);
                     setActiveTab('learning');
                 } catch (e) {
-                    console.error("登入失敗:", e);
-                    alert("登入失敗，請檢查網路連線後重試");
+                    console.error("登入邏輯失敗:", e);
+                    throw e; // 拋出錯誤供 LoginView 捕捉
                 }
             };
 
