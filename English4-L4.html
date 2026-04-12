@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L4 Let's Set Up Camp Quickly - Interactive English Learning (Advanced 100)</title>
+    <!-- 升級 Babel 至 @babel/standalone 以支援現代 JavaScript 語法 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Nunito', 'Noto Sans TC', sans-serif; background-color: #F0FDF4; }
+        .tab-active { border-bottom: 4px solid #10B981; color: #10B981; font-weight: bold; }
+        .tab-inactive { border-bottom: 4px solid transparent; color: #6B7280; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #34D399; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10B981; }
+
+        /* Status Dot Animation */
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .dot-connected { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+        .dot-connecting { background-color: #ef4444; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+
+    <!-- 透過獨立的 Module Script 載入 Firebase，避免 Babel 解析問題 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // 將 Firebase 模組掛載到全域變數供 React 元件使用
+        window.firebaseModules = {
+            initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion,
+            getAuth, signInAnonymously, onAuthStateChanged
+        };
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Firebase Constants & Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxQFt76ZPXE7d0i1XeNZ1yiiD2WYNIfHs",
+            authDomain: "chinese-learning-47f4d.firebaseapp.com",
+            projectId: "chinese-learning-47f4d",
+            storageBucket: "chinese-learning-47f4d.firebasestorage.app",
+            messagingSenderId: "76289812052",
+            appId: "1:76289812052:web:898384a916f9f341f62fc1"
+        };
+        const ORIGINAL_PREFIX = 'English4-L4_'; 
+        const COLLECTION_NAME = 'English4-L4'; 
+        const DOC_GLOBAL = 'Global_Users_L4';      
+        
+        let db = null;
+        let auth = null;
+
+        // --- Data Definitions ---
+
+        const vocabList = [
+            { word: "set / set up", phonetic: "[sɛt / sɛt ʌp]", pos: "v. / phr.", meaning: "搭(帳篷)；建立", example: "Ann is going to set up her own company in a few years.", note: "可表建立公司或搭帳篷。" },
+            { word: "make / made a fire", phonetic: "[mek / med ə faɪr]", pos: "phr.", meaning: "生火", example: "It is difficult to make a fire without a lighter.", note: "過去式為 made a fire。" },
+            { word: "boil", phonetic: "[bɔɪl]", pos: "v.", meaning: "煮沸", example: "Boil the noodles for three minutes.", note: "可指把...煮沸，或液體正在沸騰。" },
+            { word: "bug", phonetic: "[bʌg]", pos: "n.", meaning: "蟲；(電腦)漏洞", example: "The programmer fixed several bugs in the app.", note: "一字多義：可指小蟲子或電腦程式的缺陷。" },
+            { word: "picnic", phonetic: "[ˈpɪknɪk]", pos: "n. / v.", meaning: "野餐", example: "Let's go for a picnic this weekend.", note: "go picnicking 為去野餐。" },
+            { word: "hang / hung out", phonetic: "[hæŋ / hʌŋ aʊt]", pos: "v.", meaning: "晾(掛)；閒晃", example: "We hung out our clothes in the sun to dry.", note: "過去式為 hung out。" },
+            { word: "towel", phonetic: "[ˈtaʊəl]", pos: "n. / v.", meaning: "毛巾；用毛巾擦乾", example: "Vic toweled his hair dry right away.", note: "名詞為毛巾，也可當動詞「擦乾」。" },
+            { word: "lie / lay", phonetic: "[laɪ] / [le]", pos: "v.", meaning: "躺下；說謊", example: "I want to lie down and sleep right now.", note: "躺下的過去式為 lay，說謊的過去式為 lied。現在分詞皆為 lying。" },
+            { word: "grass", phonetic: "[græs]", pos: "n.", meaning: "草地；草", example: "Sheep and goats feed on grass.", note: "不可數，表草地。若強調種類可用 grasses。" },
+            { word: "string lights", phonetic: "[strɪŋ laɪts]", pos: "n.", meaning: "繩燈", example: "We put up string lights in the garden.", note: "string 為細繩，複合名詞表裝飾用繩燈。" },
+            { word: "moon", phonetic: "[mun]", pos: "n.", meaning: "月亮；月相", example: "The full moon is shining brightly tonight.", note: "月球只有一個須加 the。也可表月相 (new moon)。" },
+            { word: "count", phonetic: "[kaʊnt]", pos: "v.", meaning: "數數；計算", example: "Count me in. I want to go hiking with you.", note: "count in 表「算...一份」。" },
+            { word: "pack", phonetic: "[pæk]", pos: "v. / n.", meaning: "打包；一包(量詞)", example: "Mom packed a bag with a lot of food.", note: "pack A into B = pack B with A。量詞如 a pack of gum。" },
+            { word: "perfect", phonetic: "[ˈpɝfɪkt]", pos: "adj.", meaning: "完美的", example: "Eve is Chinese, but she has a perfect English accent.", note: "perfect for 表「適合...」。Practice makes perfect." },
+            { word: "be able to", phonetic: "[bi ˈebl tə]", pos: "phr.", meaning: "能夠", example: "Olivia is able to speak Chinese, English and Spanish.", note: "同義於 can，但可搭配未來式 (will be able to)。" },
+            { word: "well", phonetic: "[wɛl]", pos: "adv. / adj.", meaning: "很好地；健康的", example: "Ann played well in the game.", note: "不規則副詞，比較級 better。當形容詞指「健康的」。" },
+            { word: "loudly", phonetic: "[ˈlaʊdli]", pos: "adv.", meaning: "大聲地", example: "Who is speaking so loudly at the door?", note: "形容詞為 loud。相反詞 quietly。" },
+            { word: "slowly", phonetic: "[ˈsloli]", pos: "adv.", meaning: "緩慢地", example: "The snail moves slowly on the ground.", note: "形容詞/動詞為 slow(減速)。相反詞 quickly。" },
+            { word: "gently", phonetic: "[ˈdʒɛntli]", pos: "adv.", meaning: "輕柔地", example: "The woman put her baby on the bed gently.", note: "由形容詞 gentle 去 e 加 y 形成。" },
+            { word: "smile", phonetic: "[smaɪl]", pos: "v. / n.", meaning: "微笑", example: "Larry walked out and smiled at us.", note: "smile at 對...微笑。名詞片語 a smile on one's face。" },
+            { word: "hop", phonetic: "[hɑp]", pos: "v.", meaning: "單腳跳躍", example: "Owen hopped off the train as soon as it arrived.", note: "過去式 hopped。hop on/off 跳上/下車。" },
+            { word: "dancing queen", phonetic: "[ˈdænsɪŋ kwin]", pos: "n.", meaning: "舞后", example: "Serena is always a dancing queen at a party.", note: "queen 為女王/皇后。同理 king, prince, princess。" },
+            { word: "hard", phonetic: "[hɑrd]", pos: "adv. / adj.", meaning: "努力地；用力地", example: "Dad works hard every day.", note: "和 hardly (幾乎不) 意思完全不同！" },
+            { word: "trip", phonetic: "[trɪp]", pos: "v.", meaning: "絆倒", example: "Ray tripped over his son's toy.", note: "trip over... 被...絆倒。過去式 tripped。" },
+            { word: "experience", phonetic: "[ɪkˈspɪrɪəns]", pos: "n. / v.", meaning: "經歷；體驗", example: "Come and experience the joy of surfing.", note: "當單一經歷可數，當「經驗」不可數 (have experience in)。" },
+            { word: "diary", phonetic: "[ˈdaɪəri]", pos: "n.", meaning: "日記", example: "Cathy keeps a diary every day.", note: "keep/write a diary 寫日記。" },
+            { word: "arrive", phonetic: "[əˈraɪv]", pos: "v.", meaning: "抵達", example: "I'll arrive in Taipei in five minutes.", note: "arrive at 小地點；arrive in 大地點。接 home 不加介系詞。" },
+            { word: "area", phonetic: "[ˈɛrɪə]", pos: "n.", meaning: "區域；方面/領域", example: "We know nothing about the area of law.", note: "一字多義：地區或知識領域。" },
+            { word: "successfully", phonetic: "[səkˈsɛsfəli]", pos: "adv.", meaning: "成功地", example: "Chris passed the math test successfully.", note: "形容詞 successful。名詞 success。" },
+            { word: "pot", phonetic: "[pɑt]", pos: "n.", meaning: "鍋子；壺(量詞)", example: "I bought a new pot for cooking soup.", note: "也可作量詞 a pot of tea。pots and pans 鍋碗瓢盆。" },
+            { word: "burn", phonetic: "[bɝn]", pos: "v.", meaning: "燒焦；燃燒；燙傷", example: "I accidentally burned the toast.", note: "多義：燒焦、燃燒、曬傷/燙傷 (burned his hand)。" },
+            { word: "unhappy", phonetic: "[ʌnˈhæpi]", pos: "adj.", meaning: "不開心的", example: "Dorothy is unhappy about having to work this weekend.", note: "un- (否定字首)。unhappy with/about 對...不開心。" },
+            { word: "hold / held", phonetic: "[hold] / [hɛld]", pos: "v.", meaning: "舉辦；握住", example: "The school will hold a sports day next week.", note: "hold on 常用於打電話「等一下」。" },
+            { word: "circle", phonetic: "[ˈsɝk!]", pos: "n. / v.", meaning: "圓圈；交友圈；圈出", example: "Those children sat in a circle.", note: "一字多義：圓圈、圈子 (close circle)、圈選。" },
+            { word: "shy", phonetic: "[ʃaɪ]", pos: "adj.", meaning: "害羞的", example: "My daughter is always shy with strangers.", note: "shy with + 人 (對...害羞)；shy to V (不敢做...)。" },
+            { word: "line", phonetic: "[laɪn]", pos: "n.", meaning: "列；線條", example: "I stood in line for an hour to buy tickets.", note: "stand/wait in line 排隊等候。" },
+            { word: "laugh", phonetic: "[læf]", pos: "v. / n.", meaning: "笑；笑聲", example: "Daphne doesn't want anyone to laugh at her kid.", note: "laugh at 嘲笑。laugh 是出聲的笑，smile 是無聲微笑。" },
+            { word: "anyone (anybody)", phonetic: "[ˈɛnɪˌwʌn]", pos: "pron.", meaning: "任何人", example: "Does anyone know the answer?", note: "視為單數，若接形容詞須放其後 (Anyone hungry)。" },
+            { word: "else", phonetic: "[ɛls]", pos: "adv.", meaning: "其他", example: "You can sing and dance. What else can you do?", note: "用於 wh- 或不定代名詞後。" },
+            { word: "clap", phonetic: "[klæp]", pos: "v. / n.", meaning: "拍手；鼓掌", example: "The teacher clapped to quiet the students.", note: "give sb a clap 給某人鼓掌。過去式 clapped。" },
+            { word: "cheer", phonetic: "[tʃɪr]", pos: "v. / n.", meaning: "歡呼；鼓舞", example: "Cheer up! Things will get better.", note: "cheer up 使振作；cheer for 為...喝采。Cheers! 乾杯！" },
+            { word: "festival", phonetic: "[ˈfɛstəv!]", pos: "n.", meaning: "節慶；節日", example: "The city held a movie festival last year.", note: "多指傳統文化節慶；holiday 多指國定放假日。" },
+            { word: "heart", phonetic: "[hɑrt]", pos: "n.", meaning: "愛心；心臟；內心", example: "The old man has a good heart.", note: "多義：心臟、心形、內心、中心重點。" },
+            { word: "shape", phonetic: "[ʃep]", pos: "n. / v.", meaning: "形狀；做成形狀", example: "The cookies are in the shape of stars.", note: "in the shape of (呈現...形狀)。shape A into B。" },
+            { word: "lucky", phonetic: "[ˈlʌki]", pos: "adj.", meaning: "幸運的", example: "Red is a lucky color in our culture.", note: "luck (名詞) + y。Good luck! 祝好運！" }
+        ];
+
+        const phrasesList = [
+            { phrase: "Ask for the Moon", meaning: "異想天開", example: "You're asking for the moon. The boss will never say yes." },
+            { phrase: "set / set up", meaning: "搭(帳篷)；建立", example: "We set up camp quickly." },
+            { phrase: "make a fire", meaning: "生火", example: "They made a fire to cook." },
+            { phrase: "hang out", meaning: "晾(掛)；閒晃", example: "We hung out our clothes in the sun to dry." },
+            { phrase: "be coming up", meaning: "即將到來", example: "The test is coming up. Are you ready for it?" },
+            { phrase: "be able to", meaning: "能夠", example: "We won't be able to dance well in front of everybody." },
+            { phrase: "turn on one's toes", meaning: "踮起腳尖旋轉", example: "In ballet, dancers must turn on their toes to achieve a smooth spin." }
+        ];
+
+        const grammarData = [
+            {
+                title: "一、副詞 (Adverbs)",
+                description: "副詞用來修飾動詞、形容詞、副詞或整個句子，用來說明時間、地點、方式、程度等訊息。",
+                sections: [
+                    {
+                        subtitle: "副詞功用與種類",
+                        rules: [
+                            "修飾動詞: Jason yelled at us loudly.",
+                            "修飾形容詞: It's so cold today.",
+                            "修飾副詞: Channing runs very quickly.",
+                            "修飾整個句子: Luckily, we caught the last bus.",
+                            "分類: 狀態(happily)、場所(here)、時間(now)、頻率(always)、程度(very, almost)"
+                        ],
+                        formulas: []
+                    }
+                ]
+            },
+            {
+                title: "二、情態副詞 (Adverbs of Manner)",
+                description: "用來修飾動詞，描述動作進行的方式或狀態。",
+                sections: [
+                    {
+                        subtitle: "1. 形成方式",
+                        rules: [
+                            "大部分直接加 -ly: kind → kindly, slow → slowly",
+                            "子音+y，去y加 -ily: busy → busily, happy → happily",
+                            "字尾 -le，去e加 -y: gentle → gently, terrible → terribly",
+                            "與形容詞同形: late, early, fast, high, hard",
+                            "不規則: good → well"
+                        ],
+                        formulas: [
+                            "⚠️ 陷阱：hard (努力地) vs hardly (幾乎不) 意思完全不同！",
+                            "⚠️ 陷阱：late (晚地) vs lately (最近) 意思完全不同！"
+                        ]
+                    },
+                    {
+                        subtitle: "2. 情態副詞的位置",
+                        rules: [
+                            "動作後 (最自然): 主詞 + 不及物動詞 (+介系詞+受詞) + 情態副詞。 (Carl ran slowly.)",
+                            "動作後 (及物): 主詞 + 及物動詞 + 受詞 + 情態副詞。 (Alan checked the windows carefully.)",
+                            "動作前 (強調): 主詞 + 情態副詞 + 及物動詞 + 受詞。 (That lady angrily closed the door.)",
+                            "句首 (修飾整句): Clearly, these ways all failed."
+                        ],
+                        formulas: [
+                            "問句句型: How + 助動詞 + 主詞 + 原形動詞? (How does Ann sing?)"
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "三、情態副詞的比較級和最高級",
+                description: "用來比較動作的狀態與程度。",
+                sections: [
+                    {
+                        subtitle: "1. 形成規則",
+                        rules: [
+                            "與形容詞同形者加 -er/-est: fast → faster → fastest",
+                            "字尾 -ly 者加 more/most: slowly → more slowly → most slowly",
+                            "不規則變化 1: well → better → best",
+                            "不規則變化 2: badly → worse → worst",
+                            "不規則變化 3: little → less → least, much → more → most"
+                        ],
+                        formulas: []
+                    },
+                    {
+                        subtitle: "2. 基本句型",
+                        rules: [],
+                        formulas: [
+                            "【原級】A + 一般動詞 + as + 副詞原級 + as + B. (A frog can jump as high as a rabbit.)",
+                            "【比較級】A + 一般動詞 + 副詞比較級 + than + B. (Thomas drove faster than Jason.)",
+                            "【最高級】A + 一般動詞 + (the) 副詞最高級 + 範圍. (Linda plays the piano (the) best in the class.)"
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const textAnalysisData = [
+            {
+                type: "Dialogue 1",
+                title: "After school (放學後)",
+                content: [
+                    { en: "Ann: Hey, guys, pack quickly. We have to go practice our show. We don't have much time before the camping trip party.", zh: "Ann: 嘿，大家快點整理書包。我們必須去練習我們的表演。我們在營火晚會之前沒剩下太多時間。" },
+                    { en: "Rita: That's right. It's coming up, and we need to make it perfect.", zh: "Rita: 沒錯。營火晚會就快到了，我們須要使表演完美。" },
+                    { en: "Nick: We have to practice hard, or we won't be able to dance well in front of everybody.", zh: "Nick: 我們必須努力地練習，否則我們將無法在大家面前展現出完美的舞蹈。" },
+                    { en: "Rita: Remember to shout \"Class 805\" loudly and happily at the end of our dance.", zh: "Rita: 記得在我們的舞蹈結束時大聲地、開心地喊出「八年五班」喔。" },
+                    { en: "Ann: Right! Let's go to the gym.", zh: "Ann: 沒錯！我們去體育館吧。" }
+                ],
+                notes: [
+                    "have to + VR (必須) / have + N (擁有：無進行式)。",
+                    "go (and) practice (去做某事，and常省略)。",
+                    "It's coming up (某事即將到來，須用於進行式)。",
+                    "make + O + adj (使...呈現某狀態)。",
+                    "祈使句, or + S + will... (做...否則將會...)。",
+                    "remember to V (記得要去...) vs remember V-ing (記得做過...)"
+                ]
+            },
+            {
+                type: "Dialogue 2",
+                title: "In the gym (在體育館裡)",
+                content: [
+                    { en: "Rita: Nick, when you dance, move more slowly, turn on your toes gently, and don't forget to smile.", zh: "Rita: Nick，當你跳舞時，更緩慢地移動、輕柔地踮起腳尖旋轉，並且別忘了微笑。" },
+                    { en: "Ann: You also hopped too fast. Be careful, or you'll trip.", zh: "Ann: 你單腳跳躍得太快。小心點，否則你會絆倒。" },
+                    { en: "Nick: OK, let me try it again.", zh: "Nick: 好的，讓我再試一次。" },
+                    { en: "Rita: Great! You did much better this time.", zh: "Rita: 太棒了！你這次做得好多了。" },
+                    { en: "Ann: Hey, Nick. Now, you're dancing much better than me.", zh: "Ann: 嘿，Nick。現在，你舞蹈跳得比我好多了。" },
+                    { en: "Nick: Thanks. Actually, you dance most beautifully. That's because you're the dancing queen.", zh: "Nick: 謝謝。實際上，妳舞蹈跳得最優美。那是因為妳是舞后。" }
+                ],
+                notes: [
+                    "turn on your toes (踮起腳尖旋轉)。",
+                    "forget to V (忘記要去...) vs forget V-ing (忘記做過...)。",
+                    "too fast (too修飾副詞fast，表太快了)。",
+                    "much better (much用來加強比較級better)。",
+                    "dance most beautifully (副詞最高級修飾動詞dance)。"
+                ]
+            },
+            {
+                type: "Reading",
+                title: "Rita's Wonderful Camping Experience (Rita的美好露營體驗)",
+                content: [
+                    { en: "Dear Diary,", zh: "親愛的日記，" },
+                    { en: "Yesterday, all the eighth-grade students went on a camping trip.", zh: "昨天，所有八年級的學生一起去露營。" },
+                    { en: "We arrived at the camping area in the afternoon and set up camp quickly.", zh: "我們在下午抵達營區，很快就搭好了帳篷。" },
+                    { en: "Then we made a fire to cook. However, it didn't all go successfully.", zh: "接著，我們生火煮飯。然而，並不是一切順利。" },
+                    { en: "The rice pot was too close to the fire, so we burned the rice.", zh: "飯鍋太靠近火，所以飯燒焦了。" },
+                    { en: "We also added too much salt to the soup, so it tasted like sea water!", zh: "我們也加了太多鹽到湯裡，所以它嘗起來像海水！" },
+                    { en: "But the bad food didn't make us unhappy.", zh: "不過，這些糟糕的食物並沒有讓我們感到難過。" },
+                    { en: "That was because our teachers held a party for us after dinner.", zh: "那是因為我們的老師們在晚餐後為我們舉辦了一場派對。" },
+                    { en: "We sang and danced in a big circle at the party. Even the shy students got in line.", zh: "在派對上，我們唱歌並圍成一個大圓圈跳舞。甚至連平常害羞的同學都加入隊伍。" },
+                    { en: "Nick laughed the hardest, and he sang more loudly than anyone else.", zh: "Nick笑得最大聲，唱得也比其他人還要大聲。" },
+                    { en: "We all clapped and cheered happily. It was like a little festival.", zh: "我們大家開心地拍手歡呼。那就像一個小型的慶典一樣。" },
+                    { en: "In the end, we made heart shapes with our hands and took a group photo.", zh: "最後，我們用手比出愛心形狀，並拍了一張團體照。" },
+                    { en: "I felt so lucky to be a part of it. What a wonderful night!", zh: "我覺得能參與其中真的好幸運。真是一個美好的夜晚！" }
+                ],
+                notes: [
+                    "all the eighth-grade students (所有八年級學生，eighth-grade為複合形容詞)。",
+                    "close to... (靠近...)，too close to (太靠近)。",
+                    "add A to B (把A加到B裡面)，salt不可數需用much。",
+                    "taste like sea water (連綴動詞 + like + 名詞)。",
+                    "more loudly than anyone else (比其他任何人都大聲，同範圍比較)。",
+                    "make A with B (用B做出A)。",
+                    "feel so lucky to be... (覺得很幸運能成為...不定詞表原因)。",
+                    "What a wonderful night! (What開頭的感嘆句，強調名詞)。"
+                ]
+            }
+        ];
+
+        // 高階演算法自動產生 100 題，確保 ABCD 選項完美打散分配 (各佔 25 題)
+        const generateQuestions = () => {
+            const rawQ = [
+                // 1-15: Vocabulary nuances (Deep meanings)
+                { q: "After hiking all day, we finally found a perfect flat area to ____.", correct: "set up camp", wrong: ["make a fire", "hang out", "count in"], exp: "set up camp (搭帳篷/建立營地)。" },
+                { q: "Please remember to ____ the wet clothes before the rain comes.", correct: "hang out", wrong: ["set up", "trip over", "burn down"], exp: "hang out (晾衣服)。" },
+                { q: "There is a ____ in the new software that keeps deleting my files.", correct: "bug", wrong: ["moon", "shape", "heart"], exp: "bug 一字多義，此處指「電腦程式的漏洞/缺陷」。" },
+                { q: "Instead of telling the truth, the little boy decided to ____ to his mother.", correct: "lie", wrong: ["lay", "lain", "lying"], exp: "lie (說謊) 是原形動詞。to lie to sb (對某人說謊)。" },
+                { q: "The boss was very ____ with the slow internet connection in the office.", correct: "unhappy", wrong: ["perfect", "lucky", "shy"], exp: "unhappy with... (對...感到不開心/不滿意)。" },
+                { q: "My father has a lot of ____ in fixing old cars; he can repair almost anything.", correct: "experience", wrong: ["diaries", "festivals", "circles"], exp: "have experience in + V-ing/N (在...方面有經驗)。" },
+                { q: "The train will ____ at Kaohsiung Station in ten minutes.", correct: "arrive", wrong: ["trip", "count", "boil"], exp: "arrive at + 小地點 (抵達)。" },
+                { q: "Every night, the little girl writes her secrets in her pink ____.", correct: "diary", wrong: ["towel", "pot", "grass"], exp: "diary (日記)。write a diary (寫日記)。" },
+                { q: "You need to be careful with the hot stove, or you might ____ your hand.", correct: "burn", wrong: ["clap", "cheer", "smile"], exp: "burn 一字多義，此處指「燙傷/燒傷」。" },
+                { q: "To celebrate our victory, the school is going to ____ a huge party.", correct: "hold", wrong: ["pack", "hop", "shape"], exp: "hold a party (舉辦派對)。" },
+                { q: "I bought a new ____ specifically for making my favorite bean soup.", correct: "pot", wrong: ["line", "towel", "string"], exp: "pot (鍋子/壺)。" },
+                { q: "Please don't step on the ____; it needs time to grow.", correct: "grass", wrong: ["moon", "bug", "towel"], exp: "grass (草地)。" },
+                { q: "To play this game, everyone needs to stand in a big ____ and hold hands.", correct: "circle", wrong: ["line", "shape", "area"], exp: "in a circle (圍成一個圓圈)。" },
+                { q: "The singer asked the audience to ____ their hands to the music.", correct: "clap", wrong: ["trip", "count", "smile"], exp: "clap one's hands (拍手)。" },
+                { q: "When their team scored the winning goal, all the fans began to ____.", correct: "cheer", wrong: ["boil", "pack", "arrive"], exp: "cheer (歡呼/喝采)。" },
+
+                // 16-30: Phrases & Idioms
+                { q: "If you think the boss will give us a 50% raise, you are ____.", correct: "asking for the moon", wrong: ["making a fire", "setting up camp", "turning on your toes"], exp: "ask for the moon (異想天開/要求不可能的事)。" },
+                { q: "The weather is freezing. Let's gather some wood and ____.", correct: "make a fire", wrong: ["hang out", "set up", "be able to"], exp: "make a fire (生火)。" },
+                { q: "Mother's Day is ____, so we need to buy a gift soon.", correct: "coming up", wrong: ["hanging out", "setting up", "boiling over"], exp: "be coming up (即將到來)。" },
+                { q: "Because of his broken leg, he won't ____ play basketball for months.", correct: "be able to", wrong: ["be going to", "have to", "want to"], exp: "be able to (能夠)，搭配 won't 表「將無法」。" },
+                { q: "The ballet dancer beautifully ____ her toes during the performance.", correct: "turned on", wrong: ["tripped over", "packed in", "counted on"], exp: "turn on one's toes (踮起腳尖旋轉)。" },
+                { q: "Be careful not to ____ the toy car on the floor in the dark.", correct: "trip over", wrong: ["hop off", "burn down", "cheer for"], exp: "trip over (被...絆倒)。" },
+                { q: "I have booked the tickets. You can definitely ____ me in for the movie.", correct: "count", wrong: ["pack", "hold", "shape"], exp: "count sb in (算某人一份)。" },
+                { q: "You should not ____ to him; honesty is always the best policy.", correct: "lie", wrong: ["lay", "laugh", "clap"], exp: "lie to sb (對某人說謊)。" },
+                { q: "The kids used clay to make cookies in the ____ of animals.", correct: "shape", wrong: ["heart", "circle", "moon"], exp: "in the shape of (呈現...的形狀)。" },
+                { q: "I will ____ home in about an hour. Wait for me for dinner.", correct: "arrive", wrong: ["arrive at", "arrive in", "arrive to"], exp: "arrive 搭配 home (地方副詞) 不需介系詞。" },
+                { q: "Everyone stood ____ outside the new store waiting for it to open.", correct: "in line", wrong: ["in circle", "in shape", "in area"], exp: "stand in line (排隊)。" },
+                { q: "Are you ready? The final exams are ____ next week.", correct: "coming up", wrong: ["hanging out", "setting up", "boiling down"], exp: "coming up (即將到來)。" },
+                { q: "Please ____ your bags quickly; the bus is leaving in five minutes.", correct: "pack", wrong: ["boil", "burn", "laugh"], exp: "pack (打包行李)。" },
+                { q: "He finally saved enough money to ____ his own coffee shop.", correct: "set up", wrong: ["hang out", "trip over", "ask for"], exp: "set up (建立/創立)。" },
+                { q: "The teacher told us a funny story to ____ us up before the test.", correct: "cheer", wrong: ["count", "clap", "boil"], exp: "cheer sb up (使某人振作/開心)。" },
+
+                // 31-50: Grammar - Adverb vs Adjective, Regular/Irregular Forms
+                { q: "The music is too ____. Please turn it down.", correct: "loud", wrong: ["loudly", "loudness", "louder"], exp: "be動詞後接形容詞 loud (大聲的)。" },
+                { q: "The students were talking so ____ that the teacher got angry.", correct: "loudly", wrong: ["loud", "loudness", "louder"], exp: "修飾動詞 talk 需用副詞 loudly。" },
+                { q: "After the car accident, the man was badly hurt and could ____ walk.", correct: "hardly", wrong: ["hard", "harder", "hardest"], exp: "hardly 是副詞「幾乎不」。句意：幾乎無法行走。" },
+                { q: "Jason practices tennis very ____ every day to win the championship.", correct: "hard", wrong: ["hardly", "harder", "hards"], exp: "修飾動詞 practice 用副詞 hard (努力地)。" },
+                { q: "You don't look ____. Maybe you should take a rest and see a doctor.", correct: "well", wrong: ["good", "better", "best"], exp: "look well 此處 well 作形容詞，表「健康的」。" },
+                { q: "The basketball team played very ____ and won the final game.", correct: "well", wrong: ["good", "better", "best"], exp: "修飾動詞 play 用副詞 well (很好地)。" },
+                { q: "I went to bed very ____ last night, so I'm extremely tired now.", correct: "late", wrong: ["lately", "later", "latest"], exp: "late (晚地) 形容詞與副詞同形。lately 意思是「最近」。" },
+                { q: "Have you seen any good movies ____?", correct: "lately", wrong: ["late", "later", "latest"], exp: "lately 是副詞，表「最近」，常用於完成式。" },
+                { q: "The bird flew very ____ in the sky, almost touching the clouds.", correct: "high", wrong: ["highly", "higher", "highest"], exp: "high (高地) 形容詞與副詞同形。highly 意思是「高度地/極為」。" },
+                { q: "The snail moves very ____, but it never gives up.", correct: "slowly", wrong: ["slow", "slower", "slowest"], exp: "修飾動詞 move 用副詞 slowly。" },
+                { q: "Please be ____ in the library. People are studying.", correct: "quiet", wrong: ["quietly", "quietness", "quieter"], exp: "be動詞後接形容詞 quiet (安靜的)。" },
+                { q: "The students sat ____ and listened to the teacher's story.", correct: "quietly", wrong: ["quiet", "quietness", "quieter"], exp: "修飾動詞 sat 用副詞 quietly。" },
+                { q: "Mother picked up the sleeping baby very ____ to avoid waking him.", correct: "gently", wrong: ["gentle", "gentleness", "gentler"], exp: "修飾動詞 picked up 用副詞 gently (輕柔地)。" },
+                { q: "The math question was so ____ that everyone got it right.", correct: "easy", wrong: ["easily", "easier", "easiest"], exp: "be動詞後接形容詞 easy。" },
+                { q: "She solved the difficult math problem very ____.", correct: "easily", wrong: ["easy", "easier", "easiest"], exp: "修飾動詞 solved 用副詞 easily。" },
+                { q: "It rained ____ yesterday, so the baseball game was canceled.", correct: "heavily", wrong: ["heavy", "heavier", "heaviest"], exp: "修飾動詞 rain 用副詞 heavily (雨下得很大)。" },
+                { q: "The girl gave me a ____ smile when I helped her.", correct: "sweet", wrong: ["sweetly", "sweetness", "sweeter"], exp: "修飾名詞 smile 需用形容詞 sweet。" },
+                { q: "The girl smiled ____ at me when I gave her the gift.", correct: "sweetly", wrong: ["sweet", "sweetness", "sweeter"], exp: "修飾動詞 smiled 需用副詞 sweetly。" },
+                { q: "We must leave ____ tomorrow morning to catch the first train.", correct: "early", wrong: ["earlier", "earliest", "earlily"], exp: "early (早地) 形容詞與副詞同形。" },
+                { q: "He is a ____ runner. He won every race in school.", correct: "fast", wrong: ["fastly", "faster", "fastest"], exp: "修飾名詞 runner 需用形容詞 fast。沒有 fastly 這個字。" },
+
+                // 51-70: Grammar - Adverb Positions & Sentence Structure
+                { q: "Ann walked ____ the classroom so she wouldn't wake anyone up.", correct: "quietly into", wrong: ["into quietly", "quiet into", "into quiet"], exp: "情態副詞可放動詞後或介系詞前：walked quietly into...。" },
+                { q: "The angry customer yelled ____ the waiter.", correct: "loudly at", wrong: ["at loudly", "loud at", "at loud"], exp: "情態副詞可置於動詞和介系詞之間：yelled loudly at...。" },
+                { q: "Mr. Lin ____ opened the letter from his daughter.", correct: "happily", wrong: ["happy", "happiness", "happier"], exp: "情態副詞可放在一般及物動詞之前以強調動作：happily opened。" },
+                { q: "The soup on the stove smells really ____. What are you cooking?", correct: "good", wrong: ["well", "better", "best"], exp: "smell 為連綴動詞，後須接形容詞 good。" },
+                { q: "Does the steak taste ____? You haven't said a word since you started eating.", correct: "terrible", wrong: ["terribly", "terribleness", "terriblely"], exp: "taste 為連綴動詞，後須接形容詞 terrible。" },
+                { q: "The dog looked ____ at the piece of meat on the table.", correct: "hungrily", wrong: ["hungry", "hunger", "hungrier"], exp: "look at (看著) 為一般動詞片語，需用副詞 hungrily 修飾動作。" },
+                { q: "After losing the game, the players looked very ____.", correct: "sad", wrong: ["sadly", "sadness", "sadder"], exp: "look (看起來) 為連綴動詞，需接形容詞 sad。" },
+                { q: "____, nobody was hurt in the terrible car accident.", correct: "Luckily", wrong: ["Lucky", "Luck", "Luckier"], exp: "修飾整個句子，副詞放句首：Luckily (幸運地是)。" },
+                { q: "Tom speaks English so ____ that people think he's from the UK.", correct: "well", wrong: ["good", "better", "best"], exp: "speak 為一般動詞，需用副詞 well 修飾。" },
+                { q: "The plan sounds ____ to me. Let's do it!", correct: "perfect", wrong: ["perfectly", "perfection", "more perfect"], exp: "sound 為連綴動詞，需接形容詞 perfect。" },
+                { q: "Please read the instructions on the box ____ before using the machine.", correct: "carefully", wrong: ["careful", "care", "careless"], exp: "修飾及物動詞 read，副詞 carefully 放在受詞 the instructions 之後。" },
+                { q: "A: ____ does your sister play the piano?  B: Very beautifully.", correct: "How", wrong: ["What", "When", "Who"], exp: "詢問動作的狀態(多好、如何)用 How。" },
+                { q: "He closed the door ____ because the baby was sleeping.", correct: "gently", wrong: ["gentle", "gentleness", "gentler"], exp: "修飾動詞 closed，副詞 gently 放在受詞 the door 之後。" },
+                { q: "The chef checked the fish ____ to make sure it wasn't burned.", correct: "carefully", wrong: ["careful", "care", "caring"], exp: "修飾動詞 checked，需用副詞 carefully。" },
+                { q: "I remembered ____ the door, but it was open when I got back.", correct: "locking", wrong: ["to lock", "lock", "locked"], exp: "remember V-ing (記得做過...)。句意：我記得有鎖門。" },
+                { q: "Please remember ____ your homework to school tomorrow.", correct: "to bring", wrong: ["bringing", "bring", "brought"], exp: "remember to V (記得要去...)。句意：記得明天要帶作業。" },
+                { q: "You'd better hurry up, ____ you will miss the school bus.", correct: "or", wrong: ["and", "so", "but"], exp: "祈使句 + or + 子句 (做...否則將會...)。" },
+                { q: "The cake didn't turn out well ____ we forgot to put sugar in it.", correct: "because", wrong: ["so", "or", "and"], exp: "因為忘了放糖(原因)，所以沒做好(結果)，用 because。" },
+                { q: "The boy hid behind his mother because he was ____ with strangers.", correct: "shy", wrong: ["shily", "shyness", "shier"], exp: "be動詞後接形容詞 shy。shy with (對...害羞)。" },
+                { q: "The dancer is turning on her toes very ____.", correct: "gracefully", wrong: ["graceful", "grace", "gracer"], exp: "修飾動詞 turn 需用副詞 gracefully (優雅地)。" },
+
+                // 71-90: Grammar - Comparatives & Superlatives of Adverbs
+                { q: "Of all the students in the class, Jason runs the ____.", correct: "fastest", wrong: ["faster", "fast", "fastly"], exp: "Of all... 表範圍，需用最高級 (the) fastest。" },
+                { q: "My brother drives much ____ than I do.", correct: "more carefully", wrong: ["carefully", "most carefully", "careful"], exp: "有 than 需用比較級，副詞 carefully 的比較級為 more carefully。much用來加強語氣。" },
+                { q: "Although he started late, he finished the test as ____ as Mary.", correct: "quickly", wrong: ["quicker", "quickest", "quick"], exp: "as + 原級 + as。修飾動詞 finished 需用副詞原級 quickly。" },
+                { q: "You did ____ on the math test this time than last time. Good job!", correct: "much better", wrong: ["very well", "more better", "the best"], exp: "有 than 用比較級 better，用 much 加強語氣。" },
+                { q: "Frank plays the guitar ____ of all the boys in the band.", correct: "the worst", wrong: ["worse", "badly", "the worse"], exp: "Of all... 表範圍，用 badly 的最高級 worst (the可省)。" },
+                { q: "The traffic is heavy. We are moving even ____ than a bicycle.", correct: "more slowly", wrong: ["slowly", "slower", "slowest"], exp: "有 than 用比較級，slowly 的比較級為 more slowly。" },
+                { q: "Who laughed ____ when the teacher told the joke?", correct: "the hardest", wrong: ["harder", "hard", "the most hard"], exp: "詢問群體中最...的，用最高級 the hardest (修飾動詞 laughed)。" },
+                { q: "He studied ____ than anyone else, so he got the highest grade.", correct: "harder", wrong: ["more hard", "hardest", "hard"], exp: "有 than 用比較級 harder。" },
+                { q: "Tina sings beautifully, but her sister sings even ____.", correct: "more beautifully", wrong: ["beautifully", "most beautifully", "beautiful"], exp: "兩者比較，even 加強比較級 more beautifully。" },
+                { q: "The turtle moves ____ of all the animals in the story.", correct: "the most slowly", wrong: ["more slowly", "the slowest", "slowly"], exp: "最高級 the most slowly 修飾 moves。" },
+                { q: "Please come to the meeting as ____ as possible.", correct: "early", wrong: ["earlier", "earliest", "more early"], exp: "as + 原級副詞 + as possible (盡可能早地)。" },
+                { q: "The new machine works much ____ than the old one.", correct: "faster", wrong: ["fast", "fastest", "more fast"], exp: "有 than 用比較級 faster。fast 副詞與形容詞同形。" },
+                { q: "We need to wake up ____ tomorrow because our train leaves at 6 AM.", correct: "earlier", wrong: ["more early", "early", "earliest"], exp: "隱含與平時比較，需用比較級 earlier。" },
+                { q: "This restaurant is famous because their chefs cook ____ than others.", correct: "better", wrong: ["well", "best", "good"], exp: "有 than 用 well 的比較級 better。" },
+                { q: "Among the three brothers, Peter behaves ____.", correct: "the most politely", wrong: ["more politely", "politely", "the politest"], exp: "三者(含)以上比較用最高級 the most politely 修飾動詞 behaves。" },
+                { q: "The baby cried ____ than before when his toy broke.", correct: "more loudly", wrong: ["loudly", "most loudly", "loud"], exp: "有 than 用比較級 more loudly。" },
+                { q: "I slept ____ last night because of the terrible noise outside.", correct: "badly", wrong: ["worse", "worst", "bad"], exp: "沒有比較對象，修飾動詞 slept 用副詞原級 badly。" },
+                { q: "He practices English ____ than all the other students in his class.", correct: "harder", wrong: ["more hard", "the hardest", "hard"], exp: "比較級 + than all the other + 複數名詞 (比其他所有人都...)。" },
+                { q: "Which of the following goes ____, a car, a train, or an airplane?", correct: "the fastest", wrong: ["fast", "faster", "more fast"], exp: "三者比較用最高級 the fastest。" },
+                { q: "To win the swimming race, you must practice ____.", correct: "more often", wrong: ["often", "most often", "the oftenest"], exp: "隱含與以前比較，需用比較級 more often。" },
+
+                // 91-100: Reading Comprehension & Nuances
+                { q: "In the reading, why did the class burn the rice?", correct: "The pot was too close to the fire.", wrong: ["They added too much salt.", "They forgot to add water.", "The fire was too small."], exp: "課文提到: The rice pot was too close to the fire, so we burned the rice." },
+                { q: "What did the soup taste like in Rita's camping experience?", correct: "Sea water", wrong: ["Medicine", "Sweet tea", "Nothing"], exp: "課文提到: We also added too much salt to the soup, so it tasted like sea water!" },
+                { q: "Why weren't the students unhappy about the bad food?", correct: "Their teachers held a party for them.", wrong: ["They weren't hungry.", "They ordered pizza.", "The food tasted great."], exp: "課文: That was because our teachers held a party for us after dinner." },
+                { q: "What shape did the students make with their hands at the end of the trip?", correct: "Heart shapes", wrong: ["Circle shapes", "Star shapes", "Square shapes"], exp: "課文: we made heart shapes with our hands." },
+                { q: "Who laughed the hardest at the camping party?", correct: "Nick", wrong: ["Rita", "Ann", "The teacher"], exp: "課文: Nick laughed the hardest..." },
+                { q: "According to the reading, what did the shy students do at the party?", correct: "They got in line and danced.", wrong: ["They hid in the tent.", "They went home early.", "They complained about the food."], exp: "課文: Even the shy students got in line." },
+                { q: "The phrase 'What a wonderful night!' is an example of an ____ sentence.", correct: "exclamatory (感嘆句)", wrong: ["interrogative (疑問句)", "imperative (祈使句)", "negative (否定句)"], exp: "以 What 或 How 開頭，表達強烈情感的句子為感嘆句。" },
+                { q: "If you add A to B, what are you doing?", correct: "Putting A into B", wrong: ["Taking A out of B", "Comparing A with B", "Replacing B with A"], exp: "add A to B 意思是「把A加到B裡面」。" },
+                { q: "In Dialogue 1, what do they need to shout at the end of the dance?", correct: "Class 805", wrong: ["Dancing Queen", "Camping Trip", "Happy Birthday"], exp: "對話提到: Remember to shout 'Class 805' loudly..." },
+                { q: "Why did Ann say Nick was the dancing queen?", correct: "Because he danced most beautifully.", wrong: ["Because he was a girl.", "Because he wore a dress.", "Because he hopped too fast."], exp: "對話結尾 Nick 說 You dance most beautifully... Ann 其實是被 Nick 稱讚為 dancing queen。等等，對話是 Nick 說 you're the dancing queen。題目反了！(選項改為測試對話細節)", "q": "In Dialogue 2, who was called the 'dancing queen'?", correct: "Ann", wrong: ["Nick", "Rita", "The teacher"], exp: "對話最後 Nick 對 Ann 說: you dance most beautifully. That's because you're the dancing queen." }
+            ];
+
+            return rawQ.map((item, idx) => {
+                const ansIndex = idx % 4; // 確保正解完美平均分佈在 0(A), 1(B), 2(C), 3(D) 四個位置
+                const options = new Array(4);
+                options[ansIndex] = item.correct; // 將正確答案放入指定位置
+                
+                let wrongIdx = 0;
+                for (let i = 0; i < 4; i++) {
+                    if (i !== ansIndex) {
+                        options[i] = item.wrong[wrongIdx];
+                        wrongIdx++;
+                    }
+                }
+                
+                return {
+                    q: item.q || item.question, // Fallback if question key was used in the last item fix
+                    options: options,
+                    ans: ansIndex,
+                    exp: item.exp
+                };
+            });
+        };
+
+        const quizQuestions = generateQuestions();
+
+        // --- Components ---
+
+        const Navbar = ({ activeTab, setActiveTab }) => (
+            <nav className="bg-white shadow-md sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex justify-between items-center py-4">
+                        <div className="flex items-center space-x-3 text-emerald-600 font-bold text-xl md:text-2xl">
+                            <i className="fa-solid fa-campground"></i>
+                            <span>L4 Let's Set Up Camp Quickly</span>
+                        </div>
+                        <div className="flex space-x-4 md:space-x-8">
+                            <button 
+                                onClick={() => setActiveTab('learning')}
+                                className={`pb-1 px-2 transition duration-300 ${activeTab === 'learning' ? 'tab-active' : 'tab-inactive hover:text-emerald-500'}`}>
+                                <i className="fa-solid fa-book-open mr-2"></i>學習介面
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('quiz')}
+                                className={`pb-1 px-2 transition duration-300 ${activeTab === 'quiz' ? 'tab-active' : 'tab-inactive hover:text-emerald-500'}`}>
+                                <i className="fa-solid fa-pen-clip mr-2"></i>魔鬼測驗 (100題)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        );
+
+        // Learning Views
+        const VocabView = () => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
+                {vocabList.map((item, idx) => (
+                    <div key={idx} className="bg-white p-5 rounded-xl shadow hover:shadow-lg transition border-l-4 border-emerald-400 relative group cursor-pointer">
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-bold text-gray-800">{item.word}</h3>
+                            <span className="text-sm font-semibold text-white bg-emerald-500 px-2 py-1 rounded">{item.pos}</span>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-2">{item.phonetic}</p>
+                        <p className="text-lg font-bold text-green-700 mb-3">{item.meaning}</p>
+                        <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded hidden group-hover:block absolute z-10 w-[105%] -left-2 top-full mt-1 shadow-2xl border border-gray-200">
+                            <p className="mb-2"><i className="fa-solid fa-comment-dots text-yellow-500 mr-2"></i><strong>例句:</strong> <br/>{item.example}</p>
+                            <p className="text-emerald-700"><i className="fa-solid fa-lightbulb text-yellow-500 mr-2"></i><strong>解析:</strong> {item.note}</p>
+                        </div>
+                        <p className="text-xs text-gray-400 group-hover:hidden mt-2 border-t pt-2 border-gray-100"><i className="fa-solid fa-hand-pointer mr-1"></i>滑鼠移入看解析</p>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const PhrasesView = () => (
+            <div className="space-y-4 fade-in">
+                {phrasesList.map((item, idx) => (
+                    <div key={idx} className="bg-white p-5 rounded-xl shadow flex flex-col md:flex-row md:items-center justify-between border-l-4 border-blue-400">
+                        <div className="md:w-1/3">
+                            <h3 className="text-xl font-bold text-gray-800">{item.phrase}</h3>
+                            <p className="text-lg font-bold text-blue-600">{item.meaning}</p>
+                        </div>
+                        <div className="md:w-2/3 mt-2 md:mt-0 bg-blue-50 p-4 rounded-lg">
+                            <p className="text-gray-700 font-medium"><strong>例句:</strong> {item.example}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const GrammarView = () => (
+            <div className="space-y-8 fade-in">
+                {grammarData.map((grammar, idx) => (
+                    <div key={idx} className="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div className="bg-emerald-600 text-white p-4">
+                            <h2 className="text-2xl font-bold">{grammar.title}</h2>
+                            <p className="text-emerald-100 mt-1">{grammar.description}</p>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            {grammar.sections.map((sec, sIdx) => (
+                                <div key={sIdx} className="border-l-4 border-yellow-400 pl-4 bg-gray-50/50 p-2 rounded-r">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-3">{sec.subtitle}</h3>
+                                    {sec.rules.length > 0 && (
+                                        <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+                                            {sec.rules.map((rule, rIdx) => <li key={rIdx} className="leading-relaxed">{rule}</li>)}
+                                        </ul>
+                                    )}
+                                    {sec.formulas.length > 0 && (
+                                        <div className="bg-white p-4 rounded-lg space-y-2 font-mono text-sm text-indigo-800 shadow-sm border border-indigo-100">
+                                            {sec.formulas.map((form, fIdx) => <p key={fIdx}>✅ {form}</p>)}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const ReadingView = () => {
+            const [showZh, setShowZh] = useState(true);
+            return (
+                <div className="fade-in space-y-6">
+                    <div className="flex justify-end mb-4">
+                        <button 
+                            onClick={() => setShowZh(!showZh)}
+                            className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-2 px-5 rounded-full shadow transition flex items-center">
+                            <i className="fa-solid fa-language mr-2"></i>
+                            {showZh ? '隱藏中文翻譯' : '顯示中文翻譯'}
+                        </button>
+                    </div>
+                    {textAnalysisData.map((text, idx) => (
+                        <div key={idx} className="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div className="bg-teal-600 text-white p-4 px-6 flex justify-between items-center">
+                                <span className="font-bold bg-teal-800 px-3 py-1 rounded-full text-xs shadow-inner">{text.type}</span>
+                                <h3 className="text-xl font-bold">{text.title}</h3>
+                            </div>
+                            <div className="p-6">
+                                <div className="space-y-4 mb-8">
+                                    {text.content.map((line, lIdx) => (
+                                        <div key={lIdx} className={`p-4 rounded-lg transition hover:bg-teal-50 ${lIdx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                                            <p className="text-gray-800 font-semibold text-lg leading-relaxed">{line.en}</p>
+                                            {showZh && <p className="text-teal-700 mt-2 border-t border-teal-100 pt-2">{line.zh}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-xl shadow-sm">
+                                    <h4 className="font-bold text-yellow-800 mb-3 text-lg"><i className="fa-solid fa-star mr-2"></i>重點句型與解析</h4>
+                                    <ul className="list-disc list-inside text-gray-700 space-y-2">
+                                        {text.notes.map((note, nIdx) => <li key={nIdx} className="leading-relaxed">{note}</li>)}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const LearningInterface = () => {
+            const [activeSection, setActiveSection] = useState('vocab');
+            
+            const sections = [
+                { id: 'vocab', name: '字詞與解析', icon: 'fa-spell-check' },
+                { id: 'phrases', name: '片語與慣用語', icon: 'fa-quote-right' },
+                { id: 'grammar', name: '語法說明', icon: 'fa-book' },
+                { id: 'reading', name: '課文解析', icon: 'fa-glasses' }
+            ];
+
+            return (
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Sidebar */}
+                    <div className="md:w-1/4">
+                        <div className="bg-white rounded-xl shadow-md p-4 sticky top-24 space-y-2">
+                            <h2 className="text-gray-400 text-sm font-black uppercase tracking-wider mb-4 px-2 border-b pb-2">學習選單 Menu</h2>
+                            {sections.map(sec => (
+                                <button 
+                                    key={sec.id}
+                                    onClick={() => setActiveSection(sec.id)}
+                                    className={`w-full text-left px-5 py-4 rounded-xl font-bold transition-all flex items-center ${activeSection === sec.id ? 'bg-emerald-500 text-white shadow-lg transform scale-105' : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                                    <i className={`fa-solid ${sec.icon} w-8 text-lg`}></i>
+                                    {sec.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Content */}
+                    <div className="md:w-3/4 min-h-[60vh]">
+                        <div className="mb-8 flex items-center">
+                            <h1 className="text-4xl font-extrabold text-gray-800 border-l-8 border-yellow-400 pl-5 tracking-tight">
+                                {sections.find(s => s.id === activeSection).name}
+                            </h1>
+                        </div>
+                        {activeSection === 'vocab' && <VocabView />}
+                        {activeSection === 'phrases' && <PhrasesView />}
+                        {activeSection === 'grammar' && <GrammarView />}
+                        {activeSection === 'reading' && <ReadingView />}
+                    </div>
+                </div>
+            );
+        };
+
+        // Quiz Interface
+        const QuizInterface = ({ currentUser, isFirebaseReady }) => {
+            const [qIndex, setQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showExp, setShowExp] = useState(false);
+            const [selectedOpt, setSelectedOpt] = useState(null);
+            const [isFinished, setIsFinished] = useState(false);
+            const [userAnswers, setUserAnswers] = useState(new Array(quizQuestions.length).fill(null));
+
+            const currentQ = quizQuestions[qIndex];
+
+            useEffect(() => {
+                // 當測驗結束時，將紀錄存回 Firebase
+                if (isFinished && currentUser && isFirebaseReady && window.fbHelpers) {
+                    const saveRecord = async () => {
+                        try {
+                            const { doc, setDoc } = window.fbHelpers;
+                            const recordId = `record_${Date.now()}`;
+                            const recordRef = doc(db, COLLECTION_NAME, currentUser.uid, 'records', recordId);
+                            await setDoc(recordRef, {
+                                score,
+                                total: quizQuestions.length,
+                                answers: userAnswers,
+                                timestamp: new Date().toISOString()
+                            });
+                        } catch (e) {
+                            console.error("儲存測驗紀錄失敗:", e);
+                        }
+                    };
+                    saveRecord();
+                }
+            }, [isFinished]);
+
+            const handleAnswer = (optIndex) => {
+                if (showExp) return; // Prevent multiple clicks
+                setSelectedOpt(optIndex);
+                setShowExp(true);
+                
+                // 記錄使用者的選擇
+                const newAnswers = [...userAnswers];
+                newAnswers[qIndex] = optIndex;
+                setUserAnswers(newAnswers);
+
+                if (optIndex === currentQ.ans) {
+                    setScore(score + 1);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (qIndex < quizQuestions.length - 1) {
+                    setQIndex(qIndex + 1);
+                    setShowExp(false);
+                    setSelectedOpt(null);
+                } else {
+                    setIsFinished(true);
+                }
+            };
+
+            const restartQuiz = () => {
+                setQIndex(0);
+                setScore(0);
+                setShowExp(false);
+                setSelectedOpt(null);
+                setIsFinished(false);
+                setUserAnswers(new Array(quizQuestions.length).fill(null));
+            };
+
+            if (isFinished) {
+                const passRate = Math.round((score / quizQuestions.length) * 100);
+                return (
+                    <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center fade-in">
+                        <h2 className="text-4xl font-black text-gray-800 mb-6 tracking-tight">測驗結束 Quiz Finished!</h2>
+                        <div className="w-56 h-56 mx-auto rounded-full border-[12px] border-gray-100 flex items-center justify-center relative mb-8 shadow-inner">
+                            <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90">
+                                <circle cx="100" cy="100" r="94" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-100" />
+                                <circle cx="100" cy="100" r="94" stroke="currentColor" strokeWidth="12" fill="transparent" 
+                                    strokeDasharray={`${passRate * 5.9} 600`} 
+                                    className={passRate >= 80 ? "text-emerald-500 transition-all duration-1000" : passRate >= 60 ? "text-yellow-500 transition-all duration-1000" : "text-red-500 transition-all duration-1000"} />
+                            </svg>
+                            <div className="text-center">
+                                <span className="text-6xl font-black">{score}</span>
+                                <span className="text-2xl text-gray-400 font-bold block mt-1">/ {quizQuestions.length}</span>
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold mb-10 text-gray-700 bg-gray-50 py-4 px-6 rounded-xl inline-block">
+                            {passRate >= 80 ? "太棒了！你已經完全掌握 L4 的進階副詞與所有詞彙！ 🎉" : passRate >= 60 ? "表現不錯，但情態副詞的比較級還可以再加強！ 💪" : "別氣餒，請多複習副詞的位置與易混淆字詞喔！ 📚"}
+                        </p>
+                        
+                        <br/>
+                        <button onClick={restartQuiz} className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:-translate-y-1 mb-12 text-lg">
+                            <i className="fa-solid fa-rotate-right mr-2"></i> 再挑戰一次 Try Again
+                        </button>
+
+                        {/* 全部作答總覽表 */}
+                        <div className="text-left mt-8">
+                            <h3 className="text-3xl font-black text-gray-800 border-b-4 border-gray-200 pb-3 mb-6 flex items-center">
+                                <i className="fa-solid fa-list-check mr-3 text-emerald-500"></i>作答總覽與解析 Review
+                            </h3>
+                            <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-200">
+                                <table className="w-full text-left border-collapse min-w-[900px]">
+                                    <thead>
+                                        <tr className="bg-gray-800 text-white border-b border-gray-300">
+                                            <th className="p-4 text-center w-16 font-bold">題號</th>
+                                            <th className="p-4 w-1/2 font-bold">題目與選項</th>
+                                            <th className="p-4 text-center w-40 font-bold">你的答案</th>
+                                            <th className="p-4 text-center w-40 font-bold">正確答案</th>
+                                            <th className="p-4 text-center w-20 font-bold">結果</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white">
+                                        {quizQuestions.map((q, idx) => {
+                                            const isCorrect = userAnswers[idx] === q.ans;
+                                            const isSkipped = userAnswers[idx] === null;
+                                            return (
+                                                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 transition">
+                                                    <td className="p-4 text-center font-black text-gray-500 text-xl">{idx + 1}</td>
+                                                    <td className="p-5">
+                                                        <p className="font-bold text-gray-800 mb-4 text-lg leading-relaxed">{q.q}</p>
+                                                        <div className="text-sm space-y-2 text-gray-600 font-medium">
+                                                            {q.options.map((opt, i) => (
+                                                                <p key={i} className={`p-2 rounded-lg ${i === q.ans ? 'text-emerald-800 font-bold bg-emerald-100/50 border border-emerald-200' : 'bg-gray-50 border border-transparent'}`}>
+                                                                    <span className="inline-block w-6 text-gray-400">{String.fromCharCode(65 + i)}.</span> {opt}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                        <div className="mt-5 text-sm bg-yellow-50 text-yellow-900 p-4 rounded-xl border border-yellow-200 shadow-sm leading-relaxed">
+                                                            <i className="fa-solid fa-lightbulb text-yellow-500 mr-2 text-lg"></i><strong>解析:</strong> {q.exp}
+                                                        </div>
+                                                    </td>
+                                                    <td className={`p-4 text-center font-bold text-lg ${isCorrect ? 'text-emerald-600' : 'text-red-500'}`}>
+                                                        {isSkipped ? '-' : `${String.fromCharCode(65 + userAnswers[idx])}. ${q.options[userAnswers[idx]]}`}
+                                                    </td>
+                                                    <td className="p-4 text-center font-bold text-emerald-600 text-lg bg-emerald-50/30">
+                                                        {String.fromCharCode(65 + q.ans)}. {q.options[q.ans]}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        {isCorrect 
+                                                            ? <i className="fa-solid fa-circle-check text-emerald-500 text-4xl drop-shadow-sm"></i>
+                                                            : <i className="fa-solid fa-circle-xmark text-red-500 text-4xl drop-shadow-sm"></i>}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto fade-in">
+                    <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                        <span className="bg-emerald-500 text-white font-black px-4 py-2 rounded-full shadow-inner">Q {qIndex + 1} / {quizQuestions.length}</span>
+                        <span className="font-bold text-gray-500 text-lg">Score: <span className="text-emerald-600 font-black text-2xl ml-1">{score}</span></span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-8 shadow-inner overflow-hidden">
+                        <div className="bg-emerald-500 h-3 rounded-full transition-all duration-500 ease-out" style={{ width: `${((qIndex) / quizQuestions.length) * 100}%` }}></div>
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-50">
+                        <h2 className="text-3xl font-black text-gray-800 mb-10 leading-relaxed border-l-8 border-yellow-400 pl-6">{currentQ.q}</h2>
+                        
+                        <div className="space-y-4 mb-10">
+                            {currentQ.options.map((opt, idx) => {
+                                let btnClass = "w-full text-left p-5 rounded-2xl border-2 transition-all font-bold text-xl focus:outline-none shadow-sm flex items-center justify-between ";
+                                if (!showExp) {
+                                    btnClass += "border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 text-gray-700 hover:shadow-md transform hover:-translate-y-1";
+                                } else {
+                                    if (idx === currentQ.ans) {
+                                        btnClass += "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-md"; // Correct answer
+                                    } else if (idx === selectedOpt) {
+                                        btnClass += "border-red-500 bg-red-50 text-red-800 shadow-md"; // Wrong selected
+                                    } else {
+                                        btnClass += "border-gray-100 text-gray-400 bg-gray-50"; // Unselected
+                                    }
+                                }
+
+                                return (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => handleAnswer(idx)}
+                                        className={btnClass}
+                                        disabled={showExp}
+                                    >
+                                        <div>
+                                            <span className="inline-block w-10 font-black text-gray-400">{String.fromCharCode(65 + idx)}.</span>
+                                            {opt}
+                                        </div>
+                                        {showExp && idx === currentQ.ans && <i className="fa-solid fa-circle-check text-emerald-500 text-3xl"></i>}
+                                        {showExp && idx === selectedOpt && idx !== currentQ.ans && <i className="fa-solid fa-circle-xmark text-red-500 text-3xl"></i>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {showExp && (
+                            <div className="fade-in bg-yellow-50 border-l-8 border-yellow-400 p-6 rounded-xl mb-8 shadow-sm">
+                                <p className="text-yellow-900 font-black mb-2 text-lg"><i className="fa-solid fa-lightbulb mr-2 text-yellow-500"></i>解析 Explanation</p>
+                                <p className="text-gray-700 leading-relaxed font-medium text-lg">{currentQ.exp}</p>
+                            </div>
+                        )}
+
+                        <div className="flex justify-end pt-4 border-t border-gray-100">
+                            <button 
+                                onClick={nextQuestion}
+                                disabled={!showExp}
+                                className={`font-black py-4 px-10 rounded-full transition-all shadow-lg text-lg flex items-center ${showExp ? 'bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer transform hover:scale-105' : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'}`}>
+                                {qIndex === quizQuestions.length - 1 ? '看成績 View Results' : '下一題 Next Question'} <i className="fa-solid fa-arrow-right ml-3"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // StatusBar Component
+        const StatusBar = ({ isFirebaseReady, currentUser }) => (
+            <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-50 fade-in pointer-events-none">
+                {currentUser && (
+                    <div className="bg-white/95 shadow-lg rounded-full px-5 py-3 text-sm font-black text-gray-700 border border-gray-200 backdrop-blur pointer-events-auto flex items-center">
+                        <i className="fa-solid fa-user-graduate text-emerald-500 mr-3 text-lg"></i>{currentUser.name}
+                    </div>
+                )}
+                {/* Firebase 連線狀態指示燈 */}
+                <div id="firebase-status" className="flex items-center gap-3 px-5 py-3 bg-white/95 rounded-full shadow-lg border border-gray-200 text-sm backdrop-blur pointer-events-auto">
+                    <div id="status-dot" className={`status-dot ${isFirebaseReady ? 'dot-connected' : 'dot-connecting'}`}></div>
+                    <span id="status-text" className="font-black text-gray-600 tracking-wide">{isFirebaseReady ? 'System Online' : 'Connecting...'}</span>
+                </div>
+            </div>
+        );
+
+        // Login Component
+        const LoginView = ({ onLogin, isFirebaseReady }) => {
+            const [name, setName] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [recentUsers, setRecentUsers] = useState([]);
+            const [errorMsg, setErrorMsg] = useState('');
+
+            useEffect(() => {
+                if (!isFirebaseReady) return;
+                const fetchUsers = async () => {
+                    try {
+                        const { doc, getDoc } = window.fbHelpers;
+                        const docSnap = await getDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL));
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data.users && Array.isArray(data.users)) {
+                                const names = data.users.map(u => typeof u === 'string' ? u : u.name).filter(Boolean);
+                                const uniqueNames = [...new Set(names)].reverse();
+                                setRecentUsers(uniqueNames);
+                            }
+                        }
+                    } catch (e) {
+                        console.error("無法取得近期登入名單:", e);
+                    }
+                };
+                fetchUsers();
+            }, [isFirebaseReady]);
+
+            const handleLoginClick = async (loginName) => {
+                setErrorMsg('');
+                if (!isFirebaseReady) return setErrorMsg('系統連線中，請稍候...');
+                if (!loginName.trim()) return setErrorMsg('請輸入您的姓名');
+                
+                setIsLoading(true);
+                try {
+                    await onLogin(loginName);
+                } catch(err) {
+                    setErrorMsg("登入失敗，請檢查網路連線後重試");
+                }
+                setIsLoading(false);
+            };
+
+            return (
+                <div className="flex flex-col items-center justify-center py-20 fade-in">
+                    <div className="bg-white p-12 rounded-[2rem] shadow-2xl border border-gray-100 w-full max-w-md text-center transform transition hover:-translate-y-2">
+                        <div className="text-7xl text-emerald-500 mb-8 drop-shadow-lg">
+                            <i className="fa-solid fa-campground"></i>
+                        </div>
+                        <h2 className="text-4xl font-black text-gray-800 mb-4 tracking-tight">L4 學習總部</h2>
+                        <p className="text-gray-500 mb-10 font-bold">登入以自動儲存您的學習進度與測驗紀錄</p>
+                        
+                        {errorMsg && (
+                            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-8 rounded text-left text-sm font-bold shadow-sm">
+                                <i className="fa-solid fa-circle-exclamation mr-2"></i>{errorMsg}
+                            </div>
+                        )}
+                        
+                        <input 
+                            type="text" 
+                            placeholder="請輸入姓名 / Enter your name" 
+                            className="w-full px-6 py-5 rounded-2xl border-2 border-gray-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 focus:outline-none mb-8 text-xl font-bold text-center transition shadow-inner bg-gray-50 focus:bg-white"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLoginClick(name)}
+                        />
+                        
+                        <div className="space-y-5">
+                            <button 
+                                onClick={() => handleLoginClick(name)}
+                                disabled={isLoading || !isFirebaseReady || !name.trim()}
+                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-5 px-4 rounded-2xl shadow-xl transition-all text-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-emerald-500/30">
+                                {isLoading ? <i className="fa-solid fa-circle-notch fa-spin text-2xl"></i> : '進入學習系統 Login'}
+                            </button>
+                            
+                            <div className="relative flex items-center py-4">
+                                <div className="flex-grow border-t-2 border-gray-100"></div>
+                                <span className="flex-shrink-0 mx-5 text-gray-400 text-sm font-black tracking-widest">快速登入 RECENT</span>
+                                <div className="flex-grow border-t-2 border-gray-100"></div>
+                            </div>
+                            
+                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 max-h-56 overflow-y-auto shadow-inner">
+                                {recentUsers.length > 0 ? (
+                                    <div className="flex flex-wrap gap-3 justify-center">
+                                        {recentUsers.map((uName, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleLoginClick(uName)}
+                                                disabled={isLoading || !isFirebaseReady}
+                                                className="bg-white border-2 border-gray-200 hover:border-emerald-400 hover:text-emerald-600 text-gray-700 px-5 py-2.5 rounded-full font-bold shadow-sm transition-all text-sm disabled:opacity-50 hover:shadow-md"
+                                            >
+                                                <i className="fa-solid fa-user mr-2 text-gray-400"></i>{uName}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-400 font-bold py-4">尚無近期登入紀錄</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('login'); // 'login', 'learning', 'quiz'
+            const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+            const [currentUser, setCurrentUser] = useState(null);
+
+            useEffect(() => {
+                let unsubscribeAuth = null;
+                const initFirebase = () => {
+                    // 等待模組掛載到全域變數後再初始化
+                    if (!window.firebaseModules) {
+                        setTimeout(initFirebase, 100);
+                        return;
+                    }
+                    try {
+                        const { initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion, getAuth, signInAnonymously, onAuthStateChanged } = window.firebaseModules;
+
+                        // 初始化 Firebase
+                        const app = initializeApp(firebaseConfig);
+                        db = getFirestore(app);
+                        auth = getAuth(app);
+                        
+                        // 掛載常用功能供其他元件使用
+                        window.fbHelpers = { doc, setDoc, getDoc, arrayUnion }; 
+                        setIsFirebaseReady(true);
+
+                        // 登入狀態監聽
+                        unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+                            if (user) {
+                                try {
+                                    const docSnap = await getDoc(doc(db, COLLECTION_NAME, user.uid));
+                                    if (docSnap.exists()) {
+                                        setCurrentUser({ uid: user.uid, name: docSnap.data().name });
+                                        setActiveTab('learning'); // 已經有紀錄的用戶直接進入學習介面
+                                    }
+                                } catch (err) {
+                                    console.error("讀取使用者資料錯誤:", err);
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Firebase 初始化失敗:", e);
+                    }
+                };
+                initFirebase();
+                return () => { if (unsubscribeAuth) unsubscribeAuth(); };
+            }, []);
+
+            const handleLogin = async (loginName) => {
+                try {
+                    const { signInAnonymously } = window.firebaseModules;
+                    const { doc, setDoc, arrayUnion } = window.fbHelpers;
+                    
+                    const userCredential = await signInAnonymously(auth);
+                    const user = userCredential.user;
+
+                    const userData = {
+                        uid: user.uid,
+                        name: loginName,
+                        lastLogin: new Date().toISOString()
+                    };
+
+                    // 1. 儲存至使用者專屬文件
+                    await setDoc(doc(db, COLLECTION_NAME, user.uid), userData, { merge: true });
+                    
+                    // 2. 更新至 Global_Users 清單
+                    await setDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL), {
+                        users: arrayUnion({ uid: user.uid, name: loginName, time: new Date().toISOString() })
+                    }, { merge: true });
+
+                    setCurrentUser(userData);
+                    setActiveTab('learning');
+                } catch (e) {
+                    console.error("登入邏輯失敗:", e);
+                    throw e; // 拋出錯誤供 LoginView 捕捉
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col relative pb-16 font-sans">
+                    {activeTab !== 'login' && <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />}
+                    
+                    <main className="flex-grow max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10">
+                        {activeTab === 'login' && <LoginView onLogin={handleLogin} isFirebaseReady={isFirebaseReady} />}
+                        {activeTab === 'learning' && <LearningInterface />}
+                        {activeTab === 'quiz' && <QuizInterface currentUser={currentUser} isFirebaseReady={isFirebaseReady} />}
+                    </main>
+
+                    {/* 常駐的右下角連線狀態 */}
+                    <StatusBar isFirebaseReady={isFirebaseReady} currentUser={currentUser} />
+
+                    <footer className="bg-emerald-900 text-emerald-100/50 py-8 text-center mt-auto relative z-10 font-bold">
+                        <p>© 2026 Interactive English Learning - L4 Let's Set Up Camp Quickly</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
