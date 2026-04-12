@@ -35,13 +35,13 @@
     <!-- 透過獨立的 Module Script 載入 Firebase，避免 Babel 解析問題 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // 將 Firebase 模組掛載到全域變數供 React 元件使用
         window.firebaseModules = {
-            initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion,
-            getAuth, signInAnonymously, onAuthStateChanged, signOut
+            initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion, onSnapshot,
+            getAuth, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken
         };
     </script>
 </head>
@@ -66,6 +66,9 @@
         
         let db = null;
         let auth = null;
+
+        // --- 取得 App ID 以符合 Canvas Firebase 權限路徑規範 ---
+        const getAppId = () => typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         // --- Data Definitions ---
 
@@ -617,7 +620,7 @@
                         try {
                             const { doc, setDoc } = window.fbHelpers;
                             const recordId = `record_${Date.now()}`;
-                            const recordRef = doc(db, COLLECTION_NAME, currentUser.uid, 'records', recordId);
+                            const recordRef = doc(db, 'artifacts', getAppId(), 'users', currentUser.uid, COLLECTION_NAME, recordId);
                             await setDoc(recordRef, {
                                 score,
                                 total: quizQuestions.length,
@@ -843,23 +846,26 @@
 
             useEffect(() => {
                 if (!isFirebaseReady) return;
-                const fetchUsers = async () => {
-                    try {
-                        const { doc, getDoc } = window.fbHelpers;
-                        const docSnap = await getDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL));
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            if (data.users && Array.isArray(data.users)) {
-                                const names = data.users.map(u => typeof u === 'string' ? u : u.name).filter(Boolean);
-                                const uniqueNames = [...new Set(names)].reverse();
-                                setRecentUsers(uniqueNames);
-                            }
+                
+                const { doc, onSnapshot } = window.firebaseModules;
+                // 使用公開路徑取得全域登入名單
+                const globalDocRef = doc(db, 'artifacts', getAppId(), 'public', 'data', COLLECTION_NAME, DOC_GLOBAL);
+
+                // 使用 onSnapshot 即時監聽，資料一有變動立刻更新畫面
+                const unsubscribe = onSnapshot(globalDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.users && Array.isArray(data.users)) {
+                            const names = data.users.map(u => typeof u === 'string' ? u : u.name).filter(Boolean);
+                            const uniqueNames = [...new Set(names)].reverse();
+                            setRecentUsers(uniqueNames);
                         }
-                    } catch (e) {
-                        console.error("無法取得近期登入名單:", e);
                     }
-                };
-                fetchUsers();
+                }, (error) => {
+                    console.error("無法取得近期登入名單:", error);
+                });
+
+                return () => unsubscribe();
             }, [isFirebaseReady]);
 
             const handleLoginClick = async (loginName) => {
@@ -945,29 +951,37 @@
 
             useEffect(() => {
                 let unsubscribeAuth = null;
-                const initFirebase = () => {
+                const initFirebase = async () => {
                     // 等待模組掛載到全域變數後再初始化
                     if (!window.firebaseModules) {
                         setTimeout(initFirebase, 100);
                         return;
                     }
                     try {
-                        const { initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion, getAuth, signInAnonymously, onAuthStateChanged } = window.firebaseModules;
+                        const { initializeApp, getFirestore, doc, setDoc, getDoc, arrayUnion, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } = window.firebaseModules;
 
-                        // 初始化 Firebase
-                        const app = initializeApp(firebaseConfig);
+                        // 初始化 Firebase (結合環境變數支援)
+                        const app = initializeApp(typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig);
                         db = getFirestore(app);
                         auth = getAuth(app);
                         
                         // 掛載常用功能供其他元件使用
                         window.fbHelpers = { doc, setDoc, getDoc, arrayUnion }; 
+
+                        // 先進行 Firebase 身分驗證 (系統強制規範)
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+
                         setIsFirebaseReady(true);
 
                         // 登入狀態監聽
                         unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
                             if (user) {
                                 try {
-                                    const docSnap = await getDoc(doc(db, COLLECTION_NAME, user.uid));
+                                    const docSnap = await getDoc(doc(db, 'artifacts', getAppId(), 'users', user.uid, COLLECTION_NAME, 'profile'));
                                     if (docSnap.exists()) {
                                         setCurrentUser({ uid: user.uid, name: docSnap.data().name });
                                         setActiveTab('learning'); // 已經有紀錄的用戶直接進入學習介面
@@ -987,11 +1001,9 @@
 
             const handleLogin = async (loginName) => {
                 try {
-                    const { signInAnonymously } = window.firebaseModules;
                     const { doc, setDoc, arrayUnion } = window.fbHelpers;
-                    
-                    const userCredential = await signInAnonymously(auth);
-                    const user = userCredential.user;
+                    const user = auth.currentUser;
+                    if (!user) throw new Error("尚未完成身份驗證");
 
                     const userData = {
                         uid: user.uid,
@@ -999,11 +1011,11 @@
                         lastLogin: new Date().toISOString()
                     };
 
-                    // 1. 儲存至使用者專屬文件
-                    await setDoc(doc(db, COLLECTION_NAME, user.uid), userData, { merge: true });
+                    // 1. 儲存至使用者專屬文件 (Private)
+                    await setDoc(doc(db, 'artifacts', getAppId(), 'users', user.uid, COLLECTION_NAME, 'profile'), userData, { merge: true });
                     
-                    // 2. 更新至 Global_Users 清單
-                    await setDoc(doc(db, COLLECTION_NAME, DOC_GLOBAL), {
+                    // 2. 更新至 Global_Users 清單 (Public)
+                    await setDoc(doc(db, 'artifacts', getAppId(), 'public', 'data', COLLECTION_NAME, DOC_GLOBAL), {
                         users: arrayUnion({ uid: user.uid, name: loginName, time: new Date().toISOString() })
                     }, { merge: true });
 
